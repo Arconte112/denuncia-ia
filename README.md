@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Plataforma de Denuncias IA
 
-## Getting Started
+Una plataforma para recibir denuncias telefónicas, transcribirlas con IA y gestionarlas.
 
-First, run the development server:
+## Características
+
+- Recepción de denuncias mediante llamadas telefónicas a través de Twilio
+- Transcripción automática de denuncias utilizando Whisper de OpenAI
+- Panel de administración para gestionar las denuncias recibidas
+- Visualización de denuncias con su información, audio y transcripción
+- API RESTful para interactuar con el sistema
+
+## Tecnologías
+
+- [Next.js](https://nextjs.org/) - Framework de React para aplicaciones web
+- [Shadcn UI](https://ui.shadcn.com/) - Biblioteca de componentes UI
+- [Tailwind CSS](https://tailwindcss.com/) - Framework CSS para diseño
+- [Twilio](https://www.twilio.com/) - Plataforma de comunicaciones para llamadas
+- [OpenAI Whisper](https://openai.com/research/whisper) - Modelo de reconocimiento de voz para transcripciones
+
+## Requisitos
+
+- Node.js 18.0.0 o superior
+- Cuenta de Twilio con un número de teléfono
+- Cuenta de OpenAI con acceso a la API de Whisper
+- Variables de entorno configuradas (ver `.env.local.example`)
+
+## Instalación
+
+1. Clona este repositorio
+   ```bash
+   git clone https://github.com/tu-usuario/denuncia-ia.git
+   cd denuncia-ia
+   ```
+
+2. Instala las dependencias
+   ```bash
+   npm install
+   ```
+
+3. Crea un archivo `.env.local` basado en `.env.local.example` y añade tus claves
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+4. Abre `.env.local` y añade tus claves de API de Twilio y OpenAI
+
+## Ejecución
+
+1. Inicia el servidor de desarrollo
+   ```bash
+   npm run dev
+   ```
+
+2. Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación
+
+## Configuración de Twilio
+
+1. Inicia sesión en tu [cuenta de Twilio](https://www.twilio.com/)
+2. Configura un número de teléfono
+3. En la configuración del número, establece el webhook para las llamadas a:
+   ```
+   https://tu-dominio.com/api/twilio
+   ```
+4. Asegúrate de que el método esté configurado como HTTP POST
+
+## Uso
+
+1. Los usuarios llaman al número de Twilio configurado
+2. La llamada es recibida y procesada por el sistema
+3. La denuncia es transcrita automáticamente
+4. Los administradores pueden ver y gestionar las denuncias desde el panel
+
+## Estructura del Proyecto
+
+- `/app` - Páginas y rutas de Next.js
+- `/app/api` - Puntos finales de la API
+- `/components` - Componentes de React reutilizables
+- `/lib` - Utilidades y funciones auxiliares
+
+## Desarrollo
+
+Para añadir nuevos componentes de Shadcn UI:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx shadcn@latest add [nombre-del-componente]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Licencia
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.

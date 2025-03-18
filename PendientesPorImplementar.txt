@@ -1,0 +1,63 @@
+# PENDIENTES POR IMPLEMENTAR
+
+## Configuración y despliegue
+
+1. Crear archivo welcome.mp3 con instrucciones para denunciantes y colocarlo en public/audio/
+2. Configurar variables de entorno (.env.local) con credenciales reales:
+   - TWILIO_ACCOUNT_SID
+   - TWILIO_AUTH_TOKEN
+   - TWILIO_PHONE_NUMBER
+   - OPENAI_API_KEY
+   - HOST_URL
+
+3. Configurar webhook de Twilio para que apunte a la URL de la API
+   - URL: https://tu-dominio.com/api/twilio
+   - Método: POST
+
+## Base de datos
+
+1. Implementar una base de datos real (MongoDB, PostgreSQL, etc.)
+2. Crear esquemas/modelos para las denuncias
+3. Implementar funciones de conexión a la base de datos
+4. Actualizar las APIs para usar la base de datos en lugar de datos de ejemplo
+
+## Seguridad y autenticación
+
+1. Implementar autenticación para el panel de administración
+2. Configurar NextAuth.js para autenticación
+3. Proteger rutas de administración
+4. Implementar roles de usuario (administrador, operador, etc.)
+5. Añadir encriptación para datos sensibles
+
+## Funcionalidades adicionales
+
+1. Implementar paginación en la lista de denuncias
+2. Añadir filtros de búsqueda por fecha, estado, etc.
+3. Implementar la función de cambio de estado de las denuncias
+4. Crear función para exportar denuncias (PDF, CSV)
+5. Implementar notificaciones por email cuando se reciben nuevas denuncias
+6. Añadir estadísticas y dashboard para administradores
+
+## Mejoras técnicas
+
+1. Optimizar manejo de archivos de audio (compresión, almacenamiento)
+2. Mejorar el manejo de errores en las APIs
+3. Implementar tests unitarios y de integración
+4. Configurar CI/CD para despliegues automáticos
+5. Optimizar la carga de páginas (SSR, ISR)
+6. Implementar middleware para validación de solicitudes
+
+## Experiencia de usuario
+
+1. Mejorar la responsividad en dispositivos móviles
+2. Añadir animaciones y transiciones
+3. Implementar modo oscuro/claro
+4. Mejorar la accesibilidad (ARIA, contraste, etc.)
+5. Agregar más feedback visual durante las operaciones
+
+## Documentación
+
+1. Actualizar README con instrucciones detalladas
+2. Documentar APIs para integración con otros sistemas
+3. Crear documentación para administradores
+4. Crear guía de contribución para desarrolladores 

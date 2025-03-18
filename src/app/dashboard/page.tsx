@@ -1,57 +1,148 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Activity, FileText, Phone, UserCheck } from "lucide-react";
+import { Activity, FileText, Phone, UserCheck, Loader2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
-// Datos de ejemplo para las estadísticas
-const statsData = [
-  {
-    title: "Total Denuncias",
-    value: "128",
-    description: "12% más que el mes pasado",
-    icon: <FileText className="h-5 w-5" />,
-  },
-  {
-    title: "Llamadas Recibidas",
-    value: "154",
-    description: "5% más que el mes pasado",
-    icon: <Phone className="h-5 w-5" />,
-  },
-  {
-    title: "Denuncias Procesadas",
-    value: "94",
-    description: "73% de las denuncias totales",
-    icon: <UserCheck className="h-5 w-5" />,
-  },
-  {
-    title: "Tiempo Promedio",
-    value: "3:42",
-    description: "Duración promedio de llamadas",
-    icon: <Activity className="h-5 w-5" />,
-  },
-];
+// Tipos para los datos de la API
+interface StatsItem {
+  title: string;
+  value: string;
+  description: string;
+  icon: string;
+}
 
-// Datos de ejemplo para los gráficos
-const chartData = [
-  { name: 'Ene', denuncias: 4, llamadas: 8 },
-  { name: 'Feb', denuncias: 10, llamadas: 12 },
-  { name: 'Mar', denuncias: 15, llamadas: 20 },
-  { name: 'Abr', denuncias: 12, llamadas: 15 },
-  { name: 'May', denuncias: 20, llamadas: 25 },
-  { name: 'Jun', denuncias: 25, llamadas: 30 },
-];
+interface ChartDataItem {
+  name: string;
+  denuncias: number;
+  llamadas: number;
+}
 
-const typeData = [
-  { name: 'Ruido', cantidad: 32 },
-  { name: 'Vandalismo', cantidad: 24 },
-  { name: 'Robo', cantidad: 18 },
-  { name: 'Ambientales', cantidad: 15 },
-  { name: 'Otros', cantidad: 11 },
-];
+interface TypeDataItem {
+  name: string;
+  cantidad: number;
+}
+
+interface LatestComplaint {
+  id: string;
+  category: string;
+  created_at: string;
+  status: string;
+}
+
+interface StatusDistribution {
+  new: number;
+  in_progress: number;
+  resolved: number;
+  closed: number;
+}
+
+interface DashboardData {
+  statsData: StatsItem[];
+  chartData: ChartDataItem[];
+  typeData: TypeDataItem[];
+  latestComplaints: LatestComplaint[];
+  statusDistribution: StatusDistribution;
+}
 
 export default function DashboardPage() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/dashboard/stats');
+        
+        if (!response.ok) {
+          throw new Error('Error al cargar los datos del dashboard');
+        }
+        
+        const dashboardData = await response.json();
+        setData(dashboardData);
+      } catch (err) {
+        console.error('Error:', err);
+        setError('No se pudieron cargar los datos. Intente nuevamente más tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Renderizar estado de carga
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p>Cargando datos del dashboard...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Renderizar error
+  if (error || !data) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center h-[80vh]">
+          <div className="p-6 bg-destructive/10 rounded-lg text-center max-w-md">
+            <h2 className="text-lg font-bold mb-2">Error</h2>
+            <p>{error || 'No se pudieron cargar los datos del dashboard.'}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
+            >
+              Intentar nuevamente
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Mapeo de nombres de iconos a componentes
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'FileText': return <FileText className="h-5 w-5" />;
+      case 'Phone': return <Phone className="h-5 w-5" />;
+      case 'UserCheck': return <UserCheck className="h-5 w-5" />;
+      case 'Activity': return <Activity className="h-5 w-5" />;
+      default: return <FileText className="h-5 w-5" />;
+    }
+  };
+
+  // Mapeo de estados a nombres en español
+  const statusMap: Record<string, string> = {
+    'new': 'Nuevo',
+    'in_progress': 'En proceso',
+    'resolved': 'Resuelto',
+    'closed': 'Cerrado'
+  };
+
+  // Función para formatear fechas relativas
+  const formatRelativeTime = (date: string) => {
+    const now = new Date();
+    const complaintDate = new Date(date);
+    const diffTime = Math.abs(now.getTime() - complaintDate.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    
+    if (diffDays > 0) {
+      return `hace ${diffDays}d`;
+    } else {
+      return `hace ${diffHours}h`;
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -63,14 +154,14 @@ export default function DashboardPage() {
         </div>
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {statsData.map((stat, index) => (
+          {data.statsData.map((stat, index) => (
             <Card key={index}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
                 </CardTitle>
                 <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
-                  {stat.icon}
+                  {getIcon(stat.icon)}
                 </div>
               </CardHeader>
               <CardContent>
@@ -95,7 +186,7 @@ export default function DashboardPage() {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={chartData}
+                    data={data.chartData}
                     margin={{
                       top: 5,
                       right: 10,
@@ -143,7 +234,7 @@ export default function DashboardPage() {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={typeData}
+                    data={data.typeData}
                     margin={{
                       top: 5,
                       right: 10,
@@ -178,37 +269,35 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle>Últimas Denuncias</CardTitle>
               <CardDescription>
-                Las 5 denuncias más recientes
+                Las {data.latestComplaints.length} denuncias más recientes
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center gap-4 rounded-lg border p-3">
-                    <div className="flex-shrink-0">
-                      <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
-                        <FileText className="h-5 w-5" />
+                {data.latestComplaints.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No hay denuncias registradas aún.
+                  </div>
+                ) : (
+                  data.latestComplaints.map((complaint) => (
+                    <div key={complaint.id} className="flex items-center gap-4 rounded-lg border p-3">
+                      <div className="flex-shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="truncate font-medium">Denuncia #{complaint.id.substring(0, 8)}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {complaint.category}
+                        </p>
+                      </div>
+                      <div className="text-sm">
+                        {formatRelativeTime(complaint.created_at)}
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="truncate font-medium">Denuncia #{128 - i + 1}</p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {i === 1 ? "Ruido excesivo en vecindario" : 
-                         i === 2 ? "Vandalismo en parque público" :
-                         i === 3 ? "Vertido ilegal de residuos" :
-                         i === 4 ? "Acoso en lugar de trabajo" : 
-                                  "Estafa telefónica"}
-                      </p>
-                    </div>
-                    <div className="text-sm">
-                      {i === 1 ? "hace 2h" : 
-                       i === 2 ? "hace 5h" :
-                       i === 3 ? "hace 1d" :
-                       i === 4 ? "hace 2d" : 
-                                "hace 3d"}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -227,10 +316,16 @@ export default function DashboardPage() {
                     <div className="h-3 w-3 rounded-full bg-green-500" />
                     <span>Nuevo</span>
                   </div>
-                  <span className="font-medium">42</span>
+                  <span className="font-medium">{data.statusDistribution.new}</span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-secondary">
-                  <div className="h-2 rounded-full bg-green-500" style={{ width: '33%' }} />
+                  <div className="h-2 rounded-full bg-green-500" style={{ 
+                    width: `${data.statusDistribution.new * 100 / 
+                      (data.statusDistribution.new + 
+                       data.statusDistribution.in_progress + 
+                       data.statusDistribution.resolved + 
+                       data.statusDistribution.closed) || 0}%` 
+                  }} />
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -238,10 +333,16 @@ export default function DashboardPage() {
                     <div className="h-3 w-3 rounded-full bg-yellow-500" />
                     <span>En proceso</span>
                   </div>
-                  <span className="font-medium">54</span>
+                  <span className="font-medium">{data.statusDistribution.in_progress}</span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-secondary">
-                  <div className="h-2 rounded-full bg-yellow-500" style={{ width: '42%' }} />
+                  <div className="h-2 rounded-full bg-yellow-500" style={{ 
+                    width: `${data.statusDistribution.in_progress * 100 / 
+                      (data.statusDistribution.new + 
+                       data.statusDistribution.in_progress + 
+                       data.statusDistribution.resolved + 
+                       data.statusDistribution.closed) || 0}%` 
+                  }} />
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -249,10 +350,33 @@ export default function DashboardPage() {
                     <div className="h-3 w-3 rounded-full bg-blue-500" />
                     <span>Resuelto</span>
                   </div>
-                  <span className="font-medium">32</span>
+                  <span className="font-medium">{data.statusDistribution.resolved}</span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-secondary">
-                  <div className="h-2 rounded-full bg-blue-500" style={{ width: '25%' }} />
+                  <div className="h-2 rounded-full bg-blue-500" style={{ 
+                    width: `${data.statusDistribution.resolved * 100 / 
+                      (data.statusDistribution.new + 
+                       data.statusDistribution.in_progress + 
+                       data.statusDistribution.resolved + 
+                       data.statusDistribution.closed) || 0}%` 
+                  }} />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-3 w-3 rounded-full bg-gray-500" />
+                    <span>Cerrado</span>
+                  </div>
+                  <span className="font-medium">{data.statusDistribution.closed}</span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-secondary">
+                  <div className="h-2 rounded-full bg-gray-500" style={{ 
+                    width: `${data.statusDistribution.closed * 100 / 
+                      (data.statusDistribution.new + 
+                       data.statusDistribution.in_progress + 
+                       data.statusDistribution.resolved + 
+                       data.statusDistribution.closed) || 0}%` 
+                  }} />
                 </div>
               </div>
             </CardContent>

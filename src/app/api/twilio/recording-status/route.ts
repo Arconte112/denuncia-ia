@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { audioProcessor } from '@/lib/audio-processor';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,24 +9,47 @@ export async function POST(request: NextRequest) {
     const recordingSid = formData.get('RecordingSid') as string;
     const recordingUrl = formData.get('RecordingUrl') as string;
     const callSid = formData.get('CallSid') as string;
+    
+    // Obtener From, si no existe o es null, usar un valor predeterminado
+    let from = formData.get('From') as string;
+    if (!from) {
+      from = 'client:TwilioClient'; // Valor para llamadas desde Twilio Client
+    }
+    
+    const duration = formData.get('RecordingDuration') as string;
 
     console.log(`Estado de grabación para llamada ${callSid}: ${recordingStatus}`);
     console.log(`URL de la grabación: ${recordingUrl}`);
+    console.log(`Número de origen: ${from}`);
 
     if (recordingStatus === 'completed') {
-      // La grabación se ha completado
-      // Aquí podríamos iniciar el procesamiento asíncrono
-      
-      // Redireccionar a la ruta principal para procesar la grabación
-      const response = await fetch(`${request.nextUrl.origin}/api/twilio`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-      console.log('Resultado del procesamiento:', result);
-
-      return NextResponse.json({ success: true, message: 'Grabación procesada' });
+      // En lugar de redirigir a la ruta principal, procesamos directamente aquí
+      try {
+        // Procesar la grabación de forma asíncrona
+        // No esperamos a que termine para no bloquear la respuesta a Twilio
+        audioProcessor.processTwilioRecording(
+          callSid,
+          recordingSid,
+          recordingUrl,
+          from,
+          duration
+        ).catch(error => {
+          console.error('Error en el procesamiento asíncrono:', error);
+        });
+        
+        return NextResponse.json({ 
+          success: true, 
+          message: 'Procesamiento de grabación iniciado',
+          recording_sid: recordingSid,
+          call_sid: callSid
+        });
+      } catch (error) {
+        console.error('Error al iniciar el procesamiento:', error);
+        return NextResponse.json(
+          { success: false, error: 'Error al iniciar el procesamiento de la grabación' },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({ 

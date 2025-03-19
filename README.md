@@ -89,3 +89,45 @@ npx shadcn@latest add [nombre-del-componente]
 ## Licencia
 
 Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
+
+# Sistema de Soporte
+
+El sistema incluye un botón flotante de soporte que permite a los usuarios enviar tickets directamente al equipo de soporte técnico. Para configurar correctamente esta funcionalidad, siga estos pasos:
+
+## Configuración de Resend para el Envío de Correos
+
+1. Cree una cuenta en [Resend](https://resend.com) si aún no tiene una.
+
+2. Obtenga su API Key desde el dashboard de Resend.
+
+3. Agregue las siguientes variables de entorno en su archivo `.env.local`:
+
+```
+RESEND_API_KEY=re_su_clave_api_aquí
+SUPPORT_EMAIL_FROM=su_dominio_verificado@ejemplo.com
+SUPPORT_EMAIL_TO=correo_donde_recibir_tickets@ejemplo.com
+```
+
+4. Para entornos de producción, asegúrese de verificar su dominio en Resend para poder enviar correos desde su propio dominio.
+
+## Funcionamiento
+
+- El botón de soporte está visible en todas las páginas del dashboard.
+- La información del usuario (email y nombre) se obtiene automáticamente del usuario logueado.
+- Al hacer clic en el botón, se abre un formulario donde el usuario solo necesita ingresar el asunto y el mensaje.
+- Al enviar el formulario, se envía un correo al equipo de soporte y una confirmación al usuario.
+- El sistema recopila automáticamente información sobre el navegador, URL y resolución para facilitar la resolución de problemas.
+
+## Personalización
+
+Puede personalizar el aspecto y comportamiento del botón de soporte modificando los siguientes archivos:
+
+- `src/components/support/support-button.tsx`: Apariencia y comportamiento del botón y formulario
+- `src/app/api/support/route.ts`: Lógica de envío de correos y formato de los mensajes
+
+## Seguridad
+
+- Se requiere que el usuario esté autenticado para enviar tickets de soporte.
+- Las credenciales de API se almacenan de forma segura en variables de entorno.
+- Toda la comunicación se realiza a través de solicitudes HTTP seguras.
+- Resend proporciona análisis y seguimiento de correos enviados.

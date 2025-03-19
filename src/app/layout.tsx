@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "VoiceGuard",
   description: "Platform for receiving and managing complaints through phone calls",
+  icons: {
+    icon: '/voiceguard-logo.png',
+  },
 };
 
 export default function RootLayout({

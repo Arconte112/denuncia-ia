@@ -4,12 +4,29 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
+// Mejor manejo de errores para la configuración de Supabase
 if (!supabaseUrl || !supabaseKey) {
-  console.error('Supabase URL or API key is missing. Please check your environment variables.');
+  console.error('ERROR: Supabase URL or API key is missing. Please check your environment variables.');
+  console.log('NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Defined' : 'Undefined');
+  console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Defined' : 'Undefined');
 }
 
-// Crear cliente de Supabase
+// Crear cliente de Supabase con validación
 export const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Verificar si el cliente está funcionando correctamente
+try {
+  // Realizar una operación simple para verificar la conexión
+  supabase.auth.getSession().then(({ data, error }) => {
+    if (error) {
+      console.error('Error connecting to Supabase:', error.message);
+    } else {
+      console.log('Supabase client initialized successfully');
+    }
+  });
+} catch (error) {
+  console.error('Critical error initializing Supabase client:', error);
+}
 
 // Tipos para las tablas de nuestra base de datos
 export type User = {

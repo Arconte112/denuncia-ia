@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, FileText, Phone, Settings, Home } from "lucide-react";
+import { BarChart3, FileText, Phone, Settings } from "lucide-react";
 import { useAuth } from "../../lib/auth-context";
+import Image from "next/image";
 
 interface SidebarProps {
   className?: string;
@@ -46,7 +47,12 @@ export function Sidebar({ className }: SidebarProps) {
     <div className={`h-screen w-64 border-r bg-card p-4 ${className}`}>
       <div className="flex items-center gap-2 pb-6 pt-2">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <Home className="h-6 w-6" />
+          <Image 
+            src="/voiceguard-logo.png" 
+            alt="VoiceGuard Logo" 
+            width={32} 
+            height={32} 
+          />
           <span className="text-xl font-bold">VoiceGuard</span>
         </Link>
       </div>

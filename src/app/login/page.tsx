@@ -33,7 +33,13 @@ export default function LoginPage() {
       await login(email, password);
       router.push(redirect);
     } catch (err) {
-      // El error ya es manejado por el contexto de autenticación
+      // Mostrar información más detallada sobre el error
+      console.error("Login error details:", err);
+      if (err instanceof Error) {
+        setLocalError(`Error: ${err.message}`);
+      } else {
+        setLocalError("Unknown error occurred during login");
+      }
     }
   };
 
@@ -48,11 +54,18 @@ export default function LoginPage() {
           <CardHeader className="space-y-1">
             <div className="flex justify-center mb-6">
               <Image 
-                src="/logo.png" 
-                alt="Logo" 
+                src="/voiceguard-logo.png" 
+                alt="VoiceGuard Logo" 
                 width={120} 
                 height={120}
                 className="dark:invert"
+                priority
+                onError={(e) => {
+                  console.error("Error loading logo:", e);
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null; // Prevent infinite loop
+                  target.style.display = "none";
+                }}
               />
             </div>
             <CardTitle className="text-3xl font-bold text-center">Login</CardTitle>
@@ -105,7 +118,7 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
-              System of Complaints - v1.0
+              VoiceGuard - v1.0
             </p>
           </CardFooter>
         </Card>
@@ -116,15 +129,14 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/50 z-10" />
         <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-12">
           <h1 className="text-4xl font-bold text-white mb-4 text-center">
-            Complaints System
+            VoiceGuard
           </h1>
           <p className="text-white/90 text-center max-w-md text-lg">
             Platform for the management and monitoring of complaints received through phone calls.
           </p>
         </div>
         <div 
-          className="absolute inset-0 bg-cover bg-center z-0" 
-          style={{ backgroundImage: "url('/images/login-background.jpg')" }}
+          className="absolute inset-0 bg-gradient-to-br from-primary to-primary-dark z-0" 
         ></div>
       </div>
     </div>

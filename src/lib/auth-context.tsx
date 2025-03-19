@@ -54,8 +54,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const response = await fetch('/api/auth/me');
         
         if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
+          try {
+            const data = await response.json();
+            setUser(data.user);
+          } catch (jsonError) {
+            console.error('Error al parsear JSON de respuesta:', jsonError);
+            console.log('Texto de respuesta:', await response.text());
+            setUser(null);
+          }
         } else {
           setUser(null);
         }

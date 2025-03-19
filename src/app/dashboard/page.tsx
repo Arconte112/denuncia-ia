@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Activity, FileText, Phone, UserCheck, Loader2 } from "lucide-react";
+import { Activity, FileText, Phone, UserCheck, Loader2, Eye } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 
 // Tipos para los datos de la API
 interface StatsItem {
@@ -78,6 +79,13 @@ const translateStatDescription = (description: string): string => {
     '100% más que el mes pasado': '100% more than last month',
     '11% de las denuncias totales': '11% of total complaints'
   };
+  
+  // Detectar y traducir patrones como "X% de las denuncias totales"
+  if (description.match(/\d+% de las denuncias totales/)) {
+    const percentage = description.split('%')[0];
+    return `${percentage}% of total complaints`;
+  }
+  
   return translations[description] || description;
 };
 
@@ -97,6 +105,7 @@ const translateTypeData = (typeData: TypeDataItem[]): any[] => {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
@@ -197,6 +206,11 @@ export default function DashboardPage() {
     } else {
       return `${diffHours}h ago`;
     }
+  };
+
+  // Function to navigate to complaint details
+  const navigateToComplaint = (id: string) => {
+    router.push(`/denuncias/${id}`);
   };
 
   return (
@@ -344,21 +358,48 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   data.latestComplaints.map((complaint) => (
-                    <div key={complaint.id} className="flex items-center gap-4 rounded-lg border p-3">
+                    <div 
+                      key={complaint.id} 
+                      className="flex items-center gap-4 rounded-lg border p-3 cursor-pointer hover:bg-accent/50 transition-colors"
+                      onClick={() => navigateToComplaint(complaint.id)}
+                    >
                       <div className="flex-shrink-0">
                         <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
                           <FileText className="h-5 w-5" />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="truncate font-medium">Complaint #{complaint.id.substring(0, 8)}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="truncate font-medium">Complaint #{complaint.id.substring(0, 8)}</p>
+                          <div 
+                            className={`h-2 w-2 rounded-full ${
+                              complaint.status === 'new' ? 'bg-green-500' : 
+                              complaint.status === 'in_progress' ? 'bg-yellow-500' : 
+                              complaint.status === 'resolved' ? 'bg-blue-500' : 
+                              'bg-gray-500'
+                            }`} 
+                            title={statusMap[complaint.status]}
+                          />
+                        </div>
                         <p className="text-sm text-muted-foreground truncate">
                           {complaint.category}
                         </p>
                       </div>
-                      <div className="text-sm">
+                      <div className="text-sm mr-2">
                         {formatRelativeTime(complaint.created_at)}
                       </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full hover:bg-secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateToComplaint(complaint.id);
+                        }}
+                        title="View complaint details"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))
                 )}

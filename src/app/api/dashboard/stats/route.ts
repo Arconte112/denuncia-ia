@@ -151,7 +151,7 @@ export async function GET() {
         {
           title: "Denuncias Procesadas",
           value: (complaintsByStatus.resolved + complaintsByStatus.closed).toString(),
-          description: `${processedRate}% de las denuncias totales`,
+          description: `${processedRate}% of total complaints`,
           icon: "UserCheck"
         },
         {

@@ -5,9 +5,10 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Phone, ArrowDownLeft, Clock, Loader2, Search, RefreshCw } from "lucide-react";
+import { Phone, ArrowDownLeft, Clock, Loader2, Search, RefreshCw, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { logger } from "@/lib/logger";
+import { useRouter } from "next/navigation";
 
 // Tipos para los datos de la API
 interface Call {
@@ -21,6 +22,9 @@ interface Call {
   callSid?: string;
   recordingSid?: string | null;
   notes?: string | null;
+  complaintId?: string | null;
+  complaintCategory?: string | null;
+  complaintSummary?: string | null;
 }
 
 interface CallStats {
@@ -39,6 +43,7 @@ interface CallsData {
 const AUTO_REFRESH_INTERVAL = 30000;
 
 export default function LlamadasPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,6 +126,11 @@ export default function LlamadasPage() {
   // Función para formatear la hora de última actualización
   const formatLastUpdated = () => {
     return lastUpdated.toLocaleTimeString();
+  };
+
+  // Función para navegar a los detalles de una denuncia
+  const goToComplaint = (complaintId: string) => {
+    router.push(`/denuncias/${complaintId}`);
   };
 
   // Renderizar estado de carga
@@ -259,12 +269,13 @@ export default function LlamadasPage() {
                       <TableHead>Duration</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Complaint</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredCalls.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                           {data?.calls.length === 0 
                             ? "No calls registered yet" 
                             : "No calls found with the search term"}
@@ -300,6 +311,19 @@ export default function LlamadasPage() {
                             }`}>
                               {call.hasDenuncia ? 'Generated' : 'Not generated'}
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            {call.hasDenuncia && call.complaintId && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 rounded-full hover:bg-secondary"
+                                onClick={() => goToComplaint(call.complaintId as string)}
+                                title="View complaint details"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))

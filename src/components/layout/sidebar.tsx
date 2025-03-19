@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
 import { BarChart3, FileText, Phone, Settings, Home } from "lucide-react";
+import { useAuth } from "../../lib/auth-context";
 
 interface SidebarProps {
   className?: string;
@@ -9,6 +9,7 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -30,12 +31,16 @@ export function Sidebar({ className }: SidebarProps) {
       href: "/llamadas",
       icon: <Phone className="h-5 w-5" />,
     },
-    {
+  ];
+  
+  // Agregar configuración solo si el usuario no tiene rol 'user'
+  if (user?.role !== 'user') {
+    menuItems.push({
       name: "Configuración",
       href: "/configuracion",
       icon: <Settings className="h-5 w-5" />,
-    },
-  ];
+    });
+  }
 
   return (
     <div className={`h-screen w-64 border-r bg-card p-4 ${className}`}>
@@ -73,4 +78,4 @@ export function Sidebar({ className }: SidebarProps) {
 export function MobileSidebar() {
   // Implementar menú móvil aquí en el futuro
   return null;
-} 
+}

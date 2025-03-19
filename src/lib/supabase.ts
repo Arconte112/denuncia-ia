@@ -17,6 +17,7 @@ export type User = {
   email: string;
   full_name: string;
   role: 'admin' | 'operator';
+  password: string;
   created_at: string;
   updated_at: string;
 };
@@ -32,6 +33,8 @@ export type Call = {
   recording_sid: string | null;
   has_complaint: boolean;
   notes: string | null;
+  is_valid: boolean;
+  invalid_reason: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -46,6 +49,7 @@ export type Complaint = {
   assigned_to: string | null;
   resolution: string | null;
   resolved_at: string | null;
+  summary: string | null;
   created_at: string;
   updated_at: string;
   call?: Call;

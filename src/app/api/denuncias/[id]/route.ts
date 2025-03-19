@@ -52,24 +52,37 @@ export async function PATCH(
     // Obtener los datos a actualizar
     const data = await request.json();
     
-    // Filtrar solo los campos permitidos para actualización
-    const updatesData: Partial<Complaint> = {};
-    
-    if (data.status !== undefined) {
-      // Asegurarse de que el estado sea válido
+    // Si se está actualizando el estado, usar updateStatus para mantener un historial
+    if (data.status !== undefined && data.status !== existingComplaint.status) {
+      // Validar que el estado sea válido
       if (!['new', 'in_progress', 'resolved', 'closed'].includes(data.status)) {
         return NextResponse.json(
           { error: 'Estado de denuncia no válido' },
           { status: 400 }
         );
       }
-      updatesData.status = data.status as 'new' | 'in_progress' | 'resolved' | 'closed';
       
-      // Si se está marcando como resuelta, actualizar el campo resolved_at
-      if (data.status === 'resolved' && existingComplaint.status !== 'resolved') {
-        updatesData.resolved_at = new Date().toISOString();
+      // Actualizar estado y registrar en historial
+      const updatedComplaint = await complaintService.updateStatus(
+        id, 
+        data.status as 'new' | 'in_progress' | 'resolved' | 'closed',
+        data.user_id || null,
+        data.notes || null
+      );
+      
+      if (!updatedComplaint) {
+        return NextResponse.json(
+          { error: 'Error al actualizar el estado de la denuncia' },
+          { status: 500 }
+        );
       }
-    }
+      
+      return NextResponse.json(updatedComplaint);
+    } 
+    
+    // Para otros campos, usar el método update normal
+    // Filtrar solo los campos permitidos para actualización
+    const updatesData: Partial<Complaint> = {};
     
     if (data.category !== undefined) updatesData.category = data.category;
     if (data.priority !== undefined) {
@@ -84,6 +97,7 @@ export async function PATCH(
     if (data.assigned_to !== undefined) updatesData.assigned_to = data.assigned_to;
     if (data.resolution !== undefined) updatesData.resolution = data.resolution;
     if (data.transcription !== undefined) updatesData.transcription = data.transcription;
+    if (data.summary !== undefined) updatesData.summary = data.summary;
     
     // Actualizar la denuncia
     const updatedComplaint = await complaintService.update(id, updatesData);

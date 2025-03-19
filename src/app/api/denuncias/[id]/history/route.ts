@@ -19,11 +19,11 @@ export async function GET(
       );
     }
     
-    // Obtener el historial
+    // Obtener el historial de la denuncia
     const history = await complaintService.getHistory(id);
     return NextResponse.json(history);
   } catch (error) {
-    console.error(`Error al obtener historial de la denuncia:`, error);
+    console.error(`Error al obtener el historial de la denuncia:`, error);
     return NextResponse.json(
       { error: 'Error al obtener el historial' },
       { status: 500 }

@@ -9,6 +9,8 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { ChevronLeft, Download, FileText, Loader2, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { ChangeStatusDialog } from "@/components/dialogs/change-status-dialog";
+import { StatusHistory } from "@/components/complaint/status-history";
 
 // Tipo para la denuncia
 interface Complaint {
@@ -28,6 +30,7 @@ interface Complaint {
     call_sid: string;
     timestamp: string;
   };
+  summary?: string;
 }
 
 // Mapeo de estados para visualización
@@ -51,6 +54,8 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [refreshHistoryTrigger, setRefreshHistoryTrigger] = useState(0);
 
   // Función para formatear la duración en minutos:segundos
   const formatDuration = (seconds: number | null) => {
@@ -254,13 +259,43 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
               </dl>
               
               <div className="mt-6 space-y-2">
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={() => setIsStatusDialogOpen(true)}
+                >
                   Cambiar estado
                 </Button>
-                <Button variant="outline" className="w-full">
-                  Asignar
-                </Button>
               </div>
+
+              {complaint && (
+                <ChangeStatusDialog
+                  isOpen={isStatusDialogOpen}
+                  onClose={() => setIsStatusDialogOpen(false)}
+                  currentStatus={complaint.status}
+                  complaintId={complaint.id}
+                  onStatusChanged={(newStatus) => {
+                    // Actualizar el estado local
+                    setComplaint({
+                      ...complaint,
+                      status: newStatus
+                    });
+                    
+                    // Indicar actualización
+                    setRefreshing(true);
+                    
+                    // Incrementar el contador para refrescar el historial
+                    setRefreshHistoryTrigger(prev => prev + 1);
+                    
+                    // Actualizar la hora de última actualización
+                    setLastUpdated(new Date());
+                    
+                    // Simular un pequeño retraso antes de quitar el indicador de actualización
+                    setTimeout(() => {
+                      setRefreshing(false);
+                    }, 1000);
+                  }}
+                />
+              )}
             </CardContent>
           </Card>
 
@@ -277,6 +312,21 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
                       <source src={proxyAudioUrl} type="audio/mpeg" />
                       Tu navegador no soporta la reproducción de audio.
                     </audio>
+                  </div>
+                </div>
+              )}
+
+              {complaint.summary && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-medium text-muted-foreground">Resumen IA</h3>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <FileText className="h-3 w-3" />
+                      Generado con GPT-4o
+                    </div>
+                  </div>
+                  <div className="p-4 bg-blue-500/10 rounded-md border border-blue-500/20">
+                    <p className="text-sm font-medium">{complaint.summary}</p>
                   </div>
                 </div>
               )}
@@ -301,6 +351,10 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="mt-6">
+          {complaint && <StatusHistory complaintId={complaint.id} refreshTrigger={refreshHistoryTrigger} />}
         </div>
       </div>
     </DashboardLayout>

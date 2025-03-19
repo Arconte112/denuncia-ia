@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Activity, FileText, Phone, UserCheck, Loader2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-context";
 
 // Tipos para los datos de la API
 interface StatsItem {
@@ -51,6 +53,13 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
+  const { user, logout } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  // Evitar errores de hidratación de SSR
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -76,7 +85,7 @@ export default function DashboardPage() {
   }, []);
 
   // Renderizar estado de carga
-  if (loading) {
+  if (loading || !mounted) {
     return (
       <DashboardLayout>
         <div className="flex justify-center items-center h-[80vh]">
@@ -146,12 +155,20 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
+        <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Vista general del sistema de denuncias.
-          </p>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">
+              {user?.name ? `Hola, ${user.name}` : user?.email}
+            </span>
+            <Button variant="outline" onClick={logout}>
+              Cerrar Sesión
+            </Button>
+          </div>
         </div>
+        <p className="text-muted-foreground">
+          Vista general del sistema de denuncias.
+        </p>
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {data.statsData.map((stat, index) => (
@@ -385,4 +402,4 @@ export default function DashboardPage() {
       </div>
     </DashboardLayout>
   );
-} 
+}

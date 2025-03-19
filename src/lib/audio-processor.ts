@@ -7,12 +7,6 @@ export type ComplaintAnalysis = {
   category: string;
   priority: 'low' | 'medium' | 'high';
   summary: string;
-  location?: string;
-  date?: string;
-  people_involved?: string[];
-  key_details: string[];
-  possible_evidence?: string[];
-  immediate_action_required: boolean;
 };
 
 // Inicializar cliente de OpenAI
@@ -72,17 +66,11 @@ export const audioProcessor = {
             content: `Eres un asistente especializado en analizar denuncias. 
             Extrae la información relevante de la transcripción y devuélvela en formato JSON con la siguiente estructura:
             {
-              "category": "Tipo de denuncia (ej: vandalismo, ruido, violencia, corrupción, etc.)",
+              "category": "Debe ser exactamente una de las siguientes categorías: Robo, Violencia doméstica, Vandalismo, Ruido, Drogas, Fraude, Corrupción, Acoso, Amenazas, Otro",
               "priority": "low/medium/high (basado en la urgencia y gravedad)",
-              "summary": "Resumen conciso de la denuncia",
-              "location": "Ubicación mencionada, si hay",
-              "date": "Fecha del incidente, si se menciona",
-              "people_involved": ["Lista de personas involucradas, si se mencionan"],
-              "key_details": ["Puntos clave de la denuncia"],
-              "possible_evidence": ["Posibles pruebas mencionadas"],
-              "immediate_action_required": true/false
+              "summary": "Resumen conciso de la denuncia (máximo 200 caracteres)"
             }
-            Usa tu mejor criterio para clasificar la prioridad y determinar si se requiere acción inmediata.`
+            Usa tu mejor criterio para clasificar la prioridad basándote en la gravedad del incidente.`
           },
           {
             role: 'user',
@@ -108,6 +96,12 @@ export const audioProcessor = {
     duration: string
   ): Promise<void> {
     try {
+      // Convertir duración a entero
+      const durationSeconds = parseInt(duration) || 0;
+      
+      // Verificar si la llamada es demasiado corta (menos de 10 segundos)
+      const isCallTooShort = durationSeconds < 10;
+      
       // 1. Buscar si ya existe el registro de llamada por call_sid
       let calls = await callService.getAll();
       let existingCall = calls.find(call => call.call_sid === callSid);
@@ -121,12 +115,12 @@ export const audioProcessor = {
           call_sid: callSid,
           phone_number: from,
           timestamp: new Date().toISOString(),
-          duration: parseInt(duration) || null,
-          status: 'completed',
+          duration: durationSeconds,
+          status: isCallTooShort ? 'failed' : 'completed',
           audio_url: recordingUrl,
           recording_sid: recordingSid,
           has_complaint: false,
-          notes: null
+          notes: isCallTooShort ? 'Llamada muy corta (menos de 10 segundos)' : null
         });
         
         if (!call) {
@@ -135,15 +129,22 @@ export const audioProcessor = {
       } else {
         // Actualizar registro de llamada existente
         call = await callService.update(existingCall.id, {
-          duration: parseInt(duration) || null,
-          status: 'completed',
+          duration: durationSeconds,
+          status: isCallTooShort ? 'failed' : 'completed',
           audio_url: recordingUrl,
-          recording_sid: recordingSid
+          recording_sid: recordingSid,
+          notes: isCallTooShort ? 'Llamada muy corta (menos de 10 segundos)' : existingCall.notes
         });
         
         if (!call) {
           throw new Error('No se pudo actualizar el registro de llamada');
         }
+      }
+
+      // Si la llamada es demasiado corta, no continuar con el proceso de denuncia
+      if (isCallTooShort) {
+        console.log(`Llamada ${callSid} no procesada: duración (${durationSeconds}s) menor a 10 segundos`);
+        return;
       }
       
       // 2. Descargar y transcribir el audio
@@ -162,7 +163,8 @@ export const audioProcessor = {
         priority: analysis.priority,
         assigned_to: null,
         resolution: null,
-        resolved_at: null
+        resolved_at: null,
+        summary: analysis.summary // Añadimos el resumen a la denuncia
       });
       
       if (!complaint) {

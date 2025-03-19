@@ -38,11 +38,12 @@ export async function GET() {
         time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
         phoneNumber: call.phone_number,
         duration: call.duration !== null ? formatDuration(call.duration) : 'N/A',
-        status: call.call_sid ? 'Completada' : 'No completada',
+        status: call.status === 'failed' ? 'Fallida' : (call.status === 'completed' ? 'Completada' : 'En progreso'),
         hasDenuncia: call.has_complaint,
         callSid: call.call_sid,
         recordingSid: call.recording_sid,
-        audioUrl: call.audio_url
+        audioUrl: call.audio_url,
+        notes: call.notes
       };
     });
     

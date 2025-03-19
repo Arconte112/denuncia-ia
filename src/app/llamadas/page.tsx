@@ -19,6 +19,7 @@ interface Call {
   hasDenuncia: boolean;
   callSid?: string;
   recordingSid?: string | null;
+  notes?: string | null;
 }
 
 interface CallStats {
@@ -256,8 +257,15 @@ export default function LlamadasPage() {
                           <span className={`px-2 py-1 rounded-full text-xs
                             ${call.status === "Completada" ? "bg-green-500/20 text-green-500" : ""}
                             ${call.status === "No completada" ? "bg-red-500/20 text-red-500" : ""}
+                            ${call.status === "Fallida" ? "bg-red-500/20 text-red-500" : ""}
+                            ${call.status === "En progreso" ? "bg-yellow-500/20 text-yellow-500" : ""}
                           `}>
                             {call.status}
+                            {call.notes && call.status === "Fallida" && (
+                              <span className="tooltip" data-tooltip={call.notes}>
+                                <span className="ml-1">ⓘ</span>
+                              </span>
+                            )}
                           </span>
                         </TableCell>
                         <TableCell>

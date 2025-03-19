@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Phone, ArrowDownLeft, Clock, Loader2, Search } from "lucide-react";
+import { Phone, ArrowDownLeft, Clock, Loader2, Search, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { logger } from "@/lib/logger";
 
 // Tipos para los datos de la API
 interface Call {
@@ -34,49 +35,31 @@ interface CallsData {
   stats: CallStats;
 }
 
+// Intervalo de actualización en milisegundos (30 segundos)
+const AUTO_REFRESH_INTERVAL = 30000;
+
 export default function LlamadasPage() {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<CallsData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   // Obtener datos de llamadas
-  useEffect(() => {
-    const fetchCalls = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/llamadas');
-        
-        if (!response.ok) {
-          throw new Error('Error al cargar las llamadas');
-        }
-        
-        const callsData = await response.json();
-        setData(callsData);
-        setLastUpdated(new Date());
-      } catch (err) {
-        console.error('Error:', err);
-        setError('No se pudieron cargar las llamadas. Intente nuevamente más tarde.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCalls();
-  }, []);
-
-  // Filtrar llamadas basado en la búsqueda
-  const filteredCalls = data?.calls.filter(call => 
-    call.phoneNumber.includes(searchTerm) ||
-    call.id.includes(searchTerm) ||
-    call.date.includes(searchTerm)
-  ) || [];
-
-  // Función para actualizar manualmente
-  const handleRefresh = async () => {
+  const fetchCalls = useCallback(async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      
+      logger.debug('Solicitando datos de llamadas', {
+        service: 'llamadas-page',
+        context: { isRefresh }
+      });
+      
       const response = await fetch('/api/llamadas');
       
       if (!response.ok) {
@@ -87,12 +70,52 @@ export default function LlamadasPage() {
       setData(callsData);
       setLastUpdated(new Date());
       setError(null);
+      
+      logger.debug('Datos de llamadas actualizados', {
+        service: 'llamadas-page',
+        context: { 
+          totalCalls: callsData.calls.length,
+          timestamp: new Date().toISOString()
+        }
+      });
     } catch (err) {
       console.error('Error:', err);
+      logger.error('Error al cargar datos de llamadas', {
+        service: 'llamadas-page',
+        error: err
+      });
       setError('No se pudieron cargar las llamadas. Intente nuevamente más tarde.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  }, []);
+
+  // Cargar las llamadas al inicio
+  useEffect(() => {
+    fetchCalls();
+  }, [fetchCalls]);
+
+  // Configurar actualización automática
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchCalls(true);
+    }, AUTO_REFRESH_INTERVAL);
+
+    // Limpiar el intervalo cuando el componente se desmonte
+    return () => clearInterval(intervalId);
+  }, [fetchCalls]);
+
+  // Filtrar llamadas basado en la búsqueda
+  const filteredCalls = data?.calls.filter(call => 
+    call.phoneNumber.includes(searchTerm) ||
+    call.id.includes(searchTerm) ||
+    call.date.includes(searchTerm)
+  ) || [];
+
+  // Función para actualizar manualmente
+  const handleRefresh = () => {
+    fetchCalls(true);
   };
 
   // Función para formatear la hora de última actualización
@@ -158,9 +181,9 @@ export default function LlamadasPage() {
             <Button 
               variant="outline" 
               onClick={handleRefresh} 
-              disabled={loading}
+              disabled={refreshing || loading}
             >
-              <Loader2 className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : 'hidden'}`} />
+              <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               Actualizar
             </Button>
           </div>
@@ -220,85 +243,79 @@ export default function LlamadasPage() {
             <CardTitle>Historial de Llamadas</CardTitle>
           </CardHeader>
           <CardContent>
-            {loading && data ? (
+            {(loading || refreshing) && data ? (
               <div className="flex justify-center items-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-                <span>Actualizando...</span>
+                <span>{refreshing ? "Actualizando..." : "Cargando..."}</span>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Hora</TableHead>
-                    <TableHead>Número</TableHead>
-                    <TableHead>Duración</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Denuncia</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCalls.length === 0 ? (
+              <>
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                        {data?.calls.length === 0 
-                          ? "No hay llamadas registradas aún" 
-                          : "No se encontraron llamadas con el término de búsqueda"}
-                      </TableCell>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Hora</TableHead>
+                      <TableHead>Número</TableHead>
+                      <TableHead>Duración</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Denuncia</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredCalls.map((call) => (
-                      <TableRow key={call.id}>
-                        <TableCell>{call.date}</TableCell>
-                        <TableCell>{call.time}</TableCell>
-                        <TableCell>{call.phoneNumber}</TableCell>
-                        <TableCell>{call.duration}</TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs
-                            ${call.status === "Completada" ? "bg-green-500/20 text-green-500" : ""}
-                            ${call.status === "No completada" ? "bg-red-500/20 text-red-500" : ""}
-                            ${call.status === "Fallida" ? "bg-red-500/20 text-red-500" : ""}
-                            ${call.status === "En progreso" ? "bg-yellow-500/20 text-yellow-500" : ""}
-                          `}>
-                            {call.status}
-                            {call.notes && call.status === "Fallida" && (
-                              <span className="tooltip" data-tooltip={call.notes}>
-                                <span className="ml-1">ⓘ</span>
-                              </span>
-                            )}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {call.hasDenuncia ? (
-                            <Button asChild variant="ghost" size="sm">
-                              <a href={`/api/denuncias/por-llamada/${call.id}`}>
-                                Ver denuncia
-                              </a>
-                            </Button>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">No generada</span>
-                          )}
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCalls.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                          {data?.calls.length === 0 
+                            ? "No hay llamadas registradas aún" 
+                            : "No se encontraron llamadas con el término de búsqueda"}
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      filteredCalls.map((call) => (
+                        <TableRow key={call.id}>
+                          <TableCell>{call.date}</TableCell>
+                          <TableCell>{call.time}</TableCell>
+                          <TableCell>{call.phoneNumber}</TableCell>
+                          <TableCell>{call.duration}</TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              call.status === 'completed' 
+                                ? 'bg-green-500/20 text-green-500' 
+                                : call.status === 'in-progress' 
+                                ? 'bg-blue-500/20 text-blue-500'
+                                : 'bg-yellow-500/20 text-yellow-500'
+                            }`}>
+                              {call.status === 'completed' 
+                                ? 'Completada' 
+                                : call.status === 'in-progress'
+                                ? 'En curso'
+                                : 'Error'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              call.hasDenuncia 
+                                ? 'bg-green-500/20 text-green-500' 
+                                : 'bg-gray-500/20 text-gray-500'
+                            }`}>
+                              {call.hasDenuncia ? 'Generada' : 'No generada'}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+                
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {filteredCalls.length} de {data?.calls.length || 0} llamadas · 
+                    Última actualización: {formatLastUpdated()} · 
+                    {refreshing && <span className="ml-2 text-primary">Actualizando...</span>}
+                  </p>
+                </div>
+              </>
             )}
-            {error && data && (
-              <div className="mt-4 p-4 bg-destructive/10 rounded-lg text-center">
-                <p className="text-sm text-destructive">{error}</p>
-                <button 
-                  onClick={handleRefresh}
-                  className="mt-2 text-sm text-primary"
-                >
-                  Intentar nuevamente
-                </button>
-              </div>
-            )}
-            <div className="mt-4 text-sm text-muted-foreground">
-              Mostrando {filteredCalls.length} de {data?.calls.length || 0} llamadas
-            </div>
           </CardContent>
         </Card>
       </div>

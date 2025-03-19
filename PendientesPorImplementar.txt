@@ -41,11 +41,13 @@
 ## Mejoras técnicas
 
 1. Optimizar manejo de archivos de audio (compresión, almacenamiento)
-2. Mejorar el manejo de errores en las APIs
-3. Implementar tests unitarios y de integración
-4. Configurar CI/CD para despliegues automáticos
-5. Optimizar la carga de páginas (SSR, ISR)
-6. Implementar middleware para validación de solicitudes
+2. ✅ Mejorar el manejo de errores en las APIs
+3. ✅ Implementar sistema de logs para depuración en producción
+4. ✅ Agregar reintentos (retries) en operaciones críticas
+5. Implementar tests unitarios y de integración
+6. Configurar CI/CD para despliegues automáticos
+7. Optimizar la carga de páginas (SSR, ISR)
+8. Implementar middleware para validación de solicitudes
 
 ## Experiencia de usuario
 
@@ -58,6 +60,7 @@
 ## Documentación
 
 1. Actualizar README con instrucciones detalladas
-2. Documentar APIs para integración con otros sistemas
-3. Crear documentación para administradores
-4. Crear guía de contribución para desarrolladores 
+2. ✅ Documentar sistema de logs y reintentos (ver LOGGING_RETRIES.md)
+3. Documentar APIs para integración con otros sistemas
+4. Crear documentación para administradores
+5. Crear guía de contribución para desarrolladores 

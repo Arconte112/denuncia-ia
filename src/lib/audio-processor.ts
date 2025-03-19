@@ -152,19 +152,19 @@ export const audioProcessor = {
         const startTime = Date.now();
         
         const response = await openai.chat.completions.create({
-          model: 'gpt-4o',
+          model: 'gpt-4o-mini',
           response_format: { type: 'json_object' },
           messages: [
             {
               role: 'system',
-              content: `Eres un asistente especializado en analizar denuncias. 
-              Extrae la información relevante de la transcripción y devuélvela en formato JSON con la siguiente estructura:
+              content: `You are an assistant specialized in analyzing complaints.
+              Extract the relevant information from the transcription and return it in JSON format with the following structure:
               {
-                "category": "Debe ser exactamente una de las siguientes categorías: Robo, Violencia doméstica, Vandalismo, Ruido, Drogas, Fraude, Corrupción, Acoso, Amenazas, Otro",
-                "priority": "low/medium/high (basado en la urgencia y gravedad)",
-                "summary": "Resumen conciso de la denuncia (máximo 200 caracteres)"
+                "category": "Must be exactly one of the following categories: Theft, Domestic Violence, Vandalism, Noise, Drugs, Fraud, Corruption, Harassment, Threats, Other",
+                "priority": "low/medium/high (based on urgency and severity)",
+                "summary": "Concise summary of the complaint (maximum 200 characters)"
               }
-              Usa tu mejor criterio para clasificar la prioridad basándote en la gravedad del incidente.`
+              Use your best judgment to classify the priority based on the severity of the incident.`
             },
             {
               role: 'user',

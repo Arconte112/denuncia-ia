@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Plataforma de Denuncias IA",
-  description: "Sistema de gestión de denuncias transcritas con IA",
+  title: "VoiceGuard",
+  description: "Platform for receiving and managing complaints through phone calls",
 };
 
 export default function RootLayout({

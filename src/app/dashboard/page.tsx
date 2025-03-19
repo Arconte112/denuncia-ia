@@ -49,6 +49,53 @@ interface DashboardData {
   statusDistribution: StatusDistribution;
 }
 
+// Funciones para traducir textos de la API
+const translateStatTitle = (title: string): string => {
+  const translations: Record<string, string> = {
+    'Total Denuncias': 'Total Complaints',
+    'Denuncias Pendientes': 'Pending Complaints',
+    'Denuncias Resueltas': 'Resolved Complaints',
+    'Denuncias Procesadas': 'Processed Complaints',
+    'Tasa de Resolución': 'Resolution Rate',
+    'Llamadas Recibidas': 'Received Calls',
+    'Duración Promedio': 'Average Duration',
+    'Tiempo Promedio': 'Average Time',
+    'Usuarios Activos': 'Active Users'
+  };
+  return translations[title] || title;
+};
+
+const translateStatDescription = (description: string): string => {
+  const translations: Record<string, string> = {
+    'Total de denuncias registradas': 'Total registered complaints',
+    'Denuncias sin resolver': 'Unresolved complaints',
+    'Denuncias marcadas como resueltas': 'Complaints marked as resolved',
+    'Porcentaje de resolución': 'Resolution percentage',
+    'Llamadas recibidas': 'Received calls',
+    'Promedio de duración de llamadas': 'Average call duration',
+    'Duración promedio de llamadas': 'Average call duration',
+    'Usuarios activos en el sistema': 'Active users in the system',
+    '100% más que el mes pasado': '100% more than last month',
+    '11% de las denuncias totales': '11% of total complaints'
+  };
+  return translations[description] || description;
+};
+
+const translateChartData = (chartData: ChartDataItem[]): any[] => {
+  return chartData.map(item => ({
+    name: item.name,
+    complaints: item.denuncias,
+    calls: item.llamadas
+  }));
+};
+
+const translateTypeData = (typeData: TypeDataItem[]): any[] => {
+  return typeData.map(item => ({
+    name: item.name,
+    quantity: item.cantidad
+  }));
+};
+
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,14 +115,14 @@ export default function DashboardPage() {
         const response = await fetch('/api/dashboard/stats');
         
         if (!response.ok) {
-          throw new Error('Error al cargar los datos del dashboard');
+          throw new Error('Error loading dashboard data');
         }
         
         const dashboardData = await response.json();
         setData(dashboardData);
       } catch (err) {
         console.error('Error:', err);
-        setError('No se pudieron cargar los datos. Intente nuevamente más tarde.');
+        setError('Could not load data. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -91,7 +138,7 @@ export default function DashboardPage() {
         <div className="flex justify-center items-center h-[80vh]">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p>Cargando datos del dashboard...</p>
+            <p>Loading dashboard data...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -105,12 +152,12 @@ export default function DashboardPage() {
         <div className="flex justify-center items-center h-[80vh]">
           <div className="p-6 bg-destructive/10 rounded-lg text-center max-w-md">
             <h2 className="text-lg font-bold mb-2">Error</h2>
-            <p>{error || 'No se pudieron cargar los datos del dashboard.'}</p>
+            <p>{error || 'Could not load dashboard data.'}</p>
             <button 
               onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
             >
-              Intentar nuevamente
+              Try again
             </button>
           </div>
         </div>
@@ -131,10 +178,10 @@ export default function DashboardPage() {
 
   // Mapeo de estados a nombres en español
   const statusMap: Record<string, string> = {
-    'new': 'Nuevo',
-    'in_progress': 'En proceso',
-    'resolved': 'Resuelto',
-    'closed': 'Cerrado'
+    'new': 'New',
+    'in_progress': 'In progress',
+    'resolved': 'Resolved',
+    'closed': 'Closed'
   };
 
   // Función para formatear fechas relativas
@@ -146,9 +193,9 @@ export default function DashboardPage() {
     const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
     
     if (diffDays > 0) {
-      return `hace ${diffDays}d`;
+      return `${diffDays}d ago`;
     } else {
-      return `hace ${diffHours}h`;
+      return `${diffHours}h ago`;
     }
   };
 
@@ -159,15 +206,15 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
-              {user?.name ? `Hola, ${user.name}` : user?.email}
+              {user?.name ? `Hello, ${user.name}` : user?.email}
             </span>
             <Button variant="outline" onClick={logout}>
-              Cerrar Sesión
+              Log Out
             </Button>
           </div>
         </div>
         <p className="text-muted-foreground">
-          Vista general del sistema de denuncias.
+          Overview of the complaint system.
         </p>
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -175,7 +222,7 @@ export default function DashboardPage() {
             <Card key={index}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  {stat.title}
+                  {translateStatTitle(stat.title)}
                 </CardTitle>
                 <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
                   {getIcon(stat.icon)}
@@ -184,7 +231,7 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
                 <p className="text-xs text-muted-foreground">
-                  {stat.description}
+                  {translateStatDescription(stat.description)}
                 </p>
               </CardContent>
             </Card>
@@ -194,16 +241,16 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <Card className="col-span-1">
             <CardHeader>
-              <CardTitle>Evolución de Denuncias</CardTitle>
+              <CardTitle>Complaints Evolution</CardTitle>
               <CardDescription>
-                Total de denuncias y llamadas por mes
+                Total complaints and calls per month
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={data.chartData}
+                    data={translateChartData(data.chartData)}
                     margin={{
                       top: 5,
                       right: 10,
@@ -223,14 +270,14 @@ export default function DashboardPage() {
                     />
                     <Line 
                       type="monotone" 
-                      dataKey="llamadas" 
+                      dataKey="calls" 
                       stroke="#8884d8" 
                       strokeWidth={2} 
                       activeDot={{ r: 8 }} 
                     />
                     <Line 
                       type="monotone" 
-                      dataKey="denuncias" 
+                      dataKey="complaints" 
                       stroke="#82ca9d" 
                       strokeWidth={2} 
                     />
@@ -242,16 +289,16 @@ export default function DashboardPage() {
           
           <Card className="col-span-1">
             <CardHeader>
-              <CardTitle>Tipos de Denuncia</CardTitle>
+              <CardTitle>Complaint Types</CardTitle>
               <CardDescription>
-                Clasificación por categoría
+                Classification by category
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={data.typeData}
+                    data={translateTypeData(data.typeData)}
                     margin={{
                       top: 5,
                       right: 10,
@@ -270,7 +317,7 @@ export default function DashboardPage() {
                       }} 
                     />
                     <Bar 
-                      dataKey="cantidad" 
+                      dataKey="quantity" 
                       fill="#8884d8" 
                       radius={[4, 4, 0, 0]} 
                     />
@@ -284,16 +331,16 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="col-span-2">
             <CardHeader>
-              <CardTitle>Últimas Denuncias</CardTitle>
+              <CardTitle>Latest Complaints</CardTitle>
               <CardDescription>
-                Las {data.latestComplaints.length} denuncias más recientes
+                The {data.latestComplaints.length} most recent complaints
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {data.latestComplaints.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No hay denuncias registradas aún.
+                    No complaints registered yet.
                   </div>
                 ) : (
                   data.latestComplaints.map((complaint) => (
@@ -304,7 +351,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="truncate font-medium">Denuncia #{complaint.id.substring(0, 8)}</p>
+                        <p className="truncate font-medium">Complaint #{complaint.id.substring(0, 8)}</p>
                         <p className="text-sm text-muted-foreground truncate">
                           {complaint.category}
                         </p>
@@ -321,9 +368,9 @@ export default function DashboardPage() {
           
           <Card>
             <CardHeader>
-              <CardTitle>Distribución por Estado</CardTitle>
+              <CardTitle>Status Distribution</CardTitle>
               <CardDescription>
-                Estado actual de las denuncias
+                Current status of complaints
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -331,7 +378,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-green-500" />
-                    <span>Nuevo</span>
+                    <span>New</span>
                   </div>
                   <span className="font-medium">{data.statusDistribution.new}</span>
                 </div>
@@ -348,7 +395,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                    <span>En proceso</span>
+                    <span>In progress</span>
                   </div>
                   <span className="font-medium">{data.statusDistribution.in_progress}</span>
                 </div>
@@ -365,7 +412,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-blue-500" />
-                    <span>Resuelto</span>
+                    <span>Resolved</span>
                   </div>
                   <span className="font-medium">{data.statusDistribution.resolved}</span>
                 </div>
@@ -382,7 +429,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-gray-500" />
-                    <span>Cerrado</span>
+                    <span>Closed</span>
                   </div>
                   <span className="font-medium">{data.statusDistribution.closed}</span>
                 </div>

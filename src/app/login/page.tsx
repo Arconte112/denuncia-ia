@@ -24,7 +24,7 @@ export default function LoginPage() {
     e.preventDefault();
     
     if (!email || !password) {
-      setLocalError("Por favor ingrese su correo y contraseña");
+      setLocalError("Please enter your email and password");
       return;
     }
     
@@ -55,9 +55,9 @@ export default function LoginPage() {
                 className="dark:invert"
               />
             </div>
-            <CardTitle className="text-3xl font-bold text-center">Iniciar Sesión</CardTitle>
+            <CardTitle className="text-3xl font-bold text-center">Login</CardTitle>
             <CardDescription className="text-center">
-              Ingrese sus credenciales para acceder al sistema
+              Enter your credentials to access the system
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -69,11 +69,11 @@ export default function LoginPage() {
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="correo@ejemplo.com"
+                  placeholder="email@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -81,7 +81,7 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Contraseña</Label>
+                  <Label htmlFor="password">Password</Label>
                 </div>
                 <Input
                   id="password"
@@ -95,17 +95,17 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Iniciando sesión...
+                    Logging in...
                   </>
                 ) : (
-                  "Iniciar Sesión"
+                  "Login"
                 )}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">
             <p className="text-sm text-muted-foreground">
-              Sistema de Denuncias - v1.0
+              System of Complaints - v1.0
             </p>
           </CardFooter>
         </Card>
@@ -116,10 +116,10 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/50 z-10" />
         <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-12">
           <h1 className="text-4xl font-bold text-white mb-4 text-center">
-            Sistema de Denuncias
+            Complaints System
           </h1>
           <p className="text-white/90 text-center max-w-md text-lg">
-            Plataforma para la gestión y seguimiento de denuncias recibidas a través de llamadas telefónicas.
+            Platform for the management and monitoring of complaints received through phone calls.
           </p>
         </div>
         <div 

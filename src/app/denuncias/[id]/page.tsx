@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { ChevronLeft, Download, FileText, Loader2, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import { ChangeStatusDialog } from "@/components/dialogs/change-status-dialog";
 import { StatusHistory } from "@/components/complaint/status-history";
 
@@ -35,10 +35,10 @@ interface Complaint {
 
 // Mapeo de estados para visualización
 const statusDisplay = {
-  'new': { label: 'Nuevo', className: 'bg-green-500/20 text-green-500' },
-  'in_progress': { label: 'En proceso', className: 'bg-yellow-500/20 text-yellow-500' },
-  'resolved': { label: 'Resuelto', className: 'bg-blue-500/20 text-blue-500' },
-  'closed': { label: 'Cerrado', className: 'bg-gray-500/20 text-gray-500' }
+  'new': { label: 'New', className: 'bg-green-500/20 text-green-500' },
+  'in_progress': { label: 'In progress', className: 'bg-yellow-500/20 text-yellow-500' },
+  'resolved': { label: 'Resolved', className: 'bg-blue-500/20 text-blue-500' },
+  'closed': { label: 'Closed', className: 'bg-gray-500/20 text-gray-500' }
 };
 
 // Intervalo de actualización en milisegundos (30 segundos)
@@ -133,7 +133,7 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
         <div className="flex items-center justify-center min-h-[80vh]">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p>Cargando detalles de la denuncia...</p>
+            <p>Loading complaint details...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -146,13 +146,13 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
         <div className="flex items-center justify-center min-h-[80vh]">
           <Card className="w-full max-w-lg">
             <CardHeader>
-              <CardTitle className="text-center text-red-500">Denuncia no encontrada</CardTitle>
+              <CardTitle className="text-center text-red-500">Complaint not found</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center">
-              <p className="mb-4">{error || 'La denuncia que estás buscando no existe o ha sido eliminada.'}</p>
+              <p className="mb-4">{error || 'The complaint you are looking for does not exist or has been deleted.'}</p>
               <Button asChild>
                 <Link href="/denuncias">
-                  Volver al listado de denuncias
+                  Return to complaints list
                 </Link>
               </Button>
             </CardContent>
@@ -178,10 +178,10 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Denuncia #{complaint.id.substring(0, 8)}</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Complaint #{complaint.id.substring(0, 8)}</h1>
               <p className="text-muted-foreground">
-                Recibida el {complaint.created_at ? format(new Date(complaint.created_at), 'PPP', { locale: es }) : 'fecha desconocida'}
-                {refreshing && <span className="ml-2 text-primary animate-pulse"> · Actualizando...</span>}
+                Received on {complaint.created_at ? format(new Date(complaint.created_at), 'PPP', { locale: enUS }) : 'unknown date'}
+                {refreshing && <span className="ml-2 text-primary animate-pulse"> · Updating...</span>}
               </p>
             </div>
           </div>
@@ -193,13 +193,13 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
               size="sm"
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              Refresh
             </Button>
             {proxyAudioUrl && (
               <Button variant="outline" asChild>
                 <a href={proxyAudioUrl} target="_blank" rel="noopener noreferrer" download>
                   <Download className="mr-2 h-4 w-4" />
-                  Descargar audio
+                  Download audio
                 </a>
               </Button>
             )}
@@ -209,7 +209,7 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="md:col-span-1">
             <CardHeader>
-              <CardTitle>Detalles</CardTitle>
+              <CardTitle>Details</CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="space-y-4 text-sm">
@@ -218,34 +218,34 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
                   <dd className="font-mono">{complaint.id.substring(0, 12)}...</dd>
                 </div>
                 <div className="flex flex-row justify-between">
-                  <dt className="font-medium text-muted-foreground">Fecha</dt>
-                  <dd>{complaint.created_at ? format(new Date(complaint.created_at), 'PPP', { locale: es }) : 'N/A'}</dd>
+                  <dt className="font-medium text-muted-foreground">Date</dt>
+                  <dd>{complaint.created_at ? format(new Date(complaint.created_at), 'PPP', { locale: enUS }) : 'N/A'}</dd>
                 </div>
                 <div className="flex flex-row justify-between">
-                  <dt className="font-medium text-muted-foreground">Número</dt>
-                  <dd>{complaint.call?.phone_number || 'Desconocido'}</dd>
+                  <dt className="font-medium text-muted-foreground">Number</dt>
+                  <dd>{complaint.call?.phone_number || 'Unknown'}</dd>
                 </div>
                 <div className="flex flex-row justify-between">
-                  <dt className="font-medium text-muted-foreground">Duración</dt>
+                  <dt className="font-medium text-muted-foreground">Duration</dt>
                   <dd>{complaint.call?.duration !== undefined ? formatDuration(complaint.call.duration) : 'N/A'}</dd>
                 </div>
                 <div className="flex flex-row justify-between">
-                  <dt className="font-medium text-muted-foreground">Categoría</dt>
-                  <dd>{complaint.category || 'Sin categoría'}</dd>
+                  <dt className="font-medium text-muted-foreground">Category</dt>
+                  <dd>{complaint.category || 'No category'}</dd>
                 </div>
                 <div className="flex flex-row justify-between">
-                  <dt className="font-medium text-muted-foreground">Prioridad</dt>
+                  <dt className="font-medium text-muted-foreground">Priority</dt>
                   <dd className={`px-2 py-1 rounded-full text-xs ${
                     complaint.priority === 'high' ? 'bg-red-500/20 text-red-500' :
                     complaint.priority === 'medium' ? 'bg-orange-500/20 text-orange-500' :
                     'bg-blue-500/20 text-blue-500'
                   }`}>
-                    {complaint.priority === 'high' ? 'Alta' : 
-                     complaint.priority === 'medium' ? 'Media' : 'Baja'}
+                    {complaint.priority === 'high' ? 'High' : 
+                     complaint.priority === 'medium' ? 'Medium' : 'Low'}
                   </dd>
                 </div>
                 <div className="flex flex-row justify-between">
-                  <dt className="font-medium text-muted-foreground">Estado</dt>
+                  <dt className="font-medium text-muted-foreground">Status</dt>
                   <dd>
                     <span className={`px-2 py-1 rounded-full text-xs ${statusDisplay[complaint.status].className}`}>
                       {statusDisplay[complaint.status].label}
@@ -253,7 +253,7 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
                   </dd>
                 </div>
                 <div className="flex flex-row justify-between">
-                  <dt className="font-medium text-muted-foreground">Última actualización</dt>
+                  <dt className="font-medium text-muted-foreground">Last update</dt>
                   <dd>{formatLastUpdated()}</dd>
                 </div>
               </dl>
@@ -263,7 +263,7 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
                   className="w-full"
                   onClick={() => setIsStatusDialogOpen(true)}
                 >
-                  Cambiar estado
+                  Change status
                 </Button>
               </div>
 
@@ -301,16 +301,16 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
 
           <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle>Grabación y Transcripción</CardTitle>
+              <CardTitle>Recording and Transcription</CardTitle>
             </CardHeader>
             <CardContent>
               {proxyAudioUrl && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Audio Original</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Original Audio</h3>
                   <div className="p-4 bg-secondary/50 rounded-md">
                     <audio controls className="w-full">
                       <source src={proxyAudioUrl} type="audio/mpeg" />
-                      Tu navegador no soporta la reproducción de audio.
+                      Your browser does not support audio playback.
                     </audio>
                   </div>
                 </div>
@@ -319,11 +319,7 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
               {complaint.summary && (
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium text-muted-foreground">Resumen IA</h3>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <FileText className="h-3 w-3" />
-                      Generado con GPT-4o
-                    </div>
+                    <h3 className="text-sm font-medium text-muted-foreground">AI Summary</h3>
                   </div>
                   <div className="p-4 bg-blue-500/10 rounded-md border border-blue-500/20">
                     <p className="text-sm font-medium">{complaint.summary}</p>
@@ -333,18 +329,14 @@ export default function DenunciaDetailPage({ params }: { params: Promise<{ id: s
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-muted-foreground">Transcripción</h3>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <FileText className="h-3 w-3" />
-                    Generado con Whisper AI
-                  </div>
+                  <h3 className="text-sm font-medium text-muted-foreground">Transcription</h3>
                 </div>
                 <div className="p-4 bg-secondary/50 rounded-md overflow-auto max-h-[400px]">
                   {complaint.transcription ? (
                     <p className="text-sm whitespace-pre-wrap">{complaint.transcription}</p>
                   ) : (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      No hay transcripción disponible para esta denuncia.
+                      No transcription available for this complaint.
                     </p>
                   )}
                 </div>

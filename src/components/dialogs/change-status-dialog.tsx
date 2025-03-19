@@ -18,10 +18,10 @@ type ComplaintStatus = 'new' | 'in_progress' | 'resolved' | 'closed';
 
 // Mapeo de estados para visualización
 const statusDisplay = {
-  'new': { label: 'Nuevo', className: 'bg-green-500/20 text-green-500' },
-  'in_progress': { label: 'En proceso', className: 'bg-yellow-500/20 text-yellow-500' },
-  'resolved': { label: 'Resuelto', className: 'bg-blue-500/20 text-blue-500' },
-  'closed': { label: 'Cerrado', className: 'bg-gray-500/20 text-gray-500' }
+  'new': { label: 'New', className: 'bg-green-500/20 text-green-500' },
+  'in_progress': { label: 'In progress', className: 'bg-yellow-500/20 text-yellow-500' },
+  'resolved': { label: 'Resolved', className: 'bg-blue-500/20 text-blue-500' },
+  'closed': { label: 'Closed', className: 'bg-gray-500/20 text-gray-500' }
 };
 
 interface ChangeStatusDialogProps {
@@ -45,7 +45,7 @@ export function ChangeStatusDialog({
 
   const handleSubmit = async () => {
     if (status === currentStatus) {
-      toast.error("Debes seleccionar un estado diferente al actual");
+      toast.error("You must select a different status from the current one");
       return;
     }
 
@@ -64,18 +64,18 @@ export function ChangeStatusDialog({
       });
 
       if (!response.ok) {
-        throw new Error('Error al actualizar el estado de la denuncia');
+        throw new Error('Error updating complaint status');
       }
 
       // Esperar un momento para que el usuario vea el estado de "Guardando..."
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      toast.success(`Estado actualizado a "${statusDisplay[status].label}"`);
+      toast.success(`Status updated to "${statusDisplay[status].label}"`);
       onStatusChanged(status);
       handleClose();
     } catch (error) {
       console.error('Error:', error);
-      toast.error('No se pudo actualizar el estado. Intente nuevamente.');
+      toast.error('Status could not be updated. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -91,9 +91,9 @@ export function ChangeStatusDialog({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Cambiar estado de la denuncia</DialogTitle>
+          <DialogTitle>Change complaint status</DialogTitle>
           <DialogDescription>
-            Selecciona el nuevo estado para la denuncia #{complaintId.substring(0, 8)}
+            Select new status for complaint #{complaintId.substring(0, 8)}
           </DialogDescription>
         </DialogHeader>
         
@@ -106,17 +106,17 @@ export function ChangeStatusDialog({
                   <span className={`mr-2 px-2 py-1 rounded-full text-xs ${className}`}>
                     {label}
                   </span>
-                  {key === currentStatus && <span className="text-xs text-muted-foreground">(Estado actual)</span>}
+                  {key === currentStatus && <span className="text-xs text-muted-foreground">(Current status)</span>}
                 </Label>
               </div>
             ))}
           </RadioGroup>
 
           <div className="mt-4">
-            <Label htmlFor="notes">Notas (opcional)</Label>
+            <Label htmlFor="notes">Notes (optional)</Label>
             <Textarea 
               id="notes" 
-              placeholder="Añade notas sobre este cambio de estado"
+              placeholder="Add notes about this status change"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="mt-1"
@@ -126,14 +126,14 @@ export function ChangeStatusDialog({
         
         <DialogFooter className="flex space-x-2 sm:justify-end">
           <Button type="button" variant="outline" onClick={handleClose}>
-            Cancelar
+            Cancel
           </Button>
           <Button 
             type="button" 
             onClick={handleSubmit} 
             disabled={status === currentStatus || isSubmitting}
           >
-            {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+            {isSubmitting ? 'Saving...' : 'Save changes'}
           </Button>
         </DialogFooter>
       </DialogContent>

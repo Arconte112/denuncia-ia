@@ -2,15 +2,15 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComplaintHistory } from "@/lib/supabase";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 
 // Mapeo de estados para visualización
 const statusDisplay = {
-  'new': { label: 'Nuevo', className: 'bg-green-500/20 text-green-500' },
-  'in_progress': { label: 'En proceso', className: 'bg-yellow-500/20 text-yellow-500' },
-  'resolved': { label: 'Resuelto', className: 'bg-blue-500/20 text-blue-500' },
-  'closed': { label: 'Cerrado', className: 'bg-gray-500/20 text-gray-500' }
+  'new': { label: 'New', className: 'bg-green-500/20 text-green-500' },
+  'in_progress': { label: 'In progress', className: 'bg-yellow-500/20 text-yellow-500' },
+  'resolved': { label: 'Resolved', className: 'bg-blue-500/20 text-blue-500' },
+  'closed': { label: 'Closed', className: 'bg-gray-500/20 text-gray-500' }
 };
 
 interface StatusHistoryProps {
@@ -37,14 +37,14 @@ export function StatusHistory({ complaintId, refreshTrigger = 0 }: StatusHistory
         const response = await fetch(`/api/denuncias/${complaintId}/history`);
         
         if (!response.ok) {
-          throw new Error('Error al cargar el historial');
+          throw new Error('Error loading history');
         }
         
         const data = await response.json();
         setHistory(data);
       } catch (err) {
         console.error('Error:', err);
-        setError('No se pudo cargar el historial');
+        setError('Could not load history');
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -58,7 +58,7 @@ export function StatusHistory({ complaintId, refreshTrigger = 0 }: StatusHistory
     return (
       <div className="flex justify-center items-center p-6">
         <Loader2 className="h-5 w-5 animate-spin mr-2" />
-        <span>Cargando historial...</span>
+        <span>Loading history...</span>
       </div>
     );
   }
@@ -74,18 +74,18 @@ export function StatusHistory({ complaintId, refreshTrigger = 0 }: StatusHistory
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg">Historial de cambios</CardTitle>
+        <CardTitle className="text-lg">Change History</CardTitle>
         {refreshing && (
           <div className="flex items-center text-xs text-muted-foreground">
             <Loader2 className="h-3 w-3 animate-spin mr-1" />
-            Actualizando...
+            Updating...
           </div>
         )}
       </CardHeader>
       <CardContent>
         {history.length === 0 ? (
           <p className="text-center text-muted-foreground py-4">
-            No hay cambios de estado registrados
+            No status changes recorded
           </p>
         ) : (
           <div className="space-y-4">
@@ -98,7 +98,7 @@ export function StatusHistory({ complaintId, refreshTrigger = 0 }: StatusHistory
                     </span>
                     {entry.old_status && (
                       <>
-                        <span className="text-muted-foreground text-xs">desde</span>
+                        <span className="text-muted-foreground text-xs">from</span>
                         <span className={`px-2 py-1 rounded-full text-xs ${statusDisplay[entry.old_status].className}`}>
                           {statusDisplay[entry.old_status].label}
                         </span>
@@ -106,12 +106,12 @@ export function StatusHistory({ complaintId, refreshTrigger = 0 }: StatusHistory
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(entry.created_at), 'dd MMM yyyy, HH:mm', { locale: es })}
+                    {format(new Date(entry.created_at), 'dd MMM yyyy, HH:mm', { locale: enUS })}
                   </span>
                 </div>
                 {entry.user && (
                   <p className="text-sm mb-1">
-                    Por: <span className="font-medium">{entry.user.full_name}</span>
+                    By: <span className="font-medium">{entry.user.full_name}</span>
                   </p>
                 )}
                 {entry.notes && (

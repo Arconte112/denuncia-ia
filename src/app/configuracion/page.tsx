@@ -14,9 +14,9 @@ export default function ConfiguracionPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
           <p className="text-muted-foreground">
-            Administra la configuración de la plataforma de denuncias
+            Manage complaint platform settings
           </p>
         </div>
         
@@ -31,34 +31,34 @@ export default function ConfiguracionPage() {
           <TabsContent value="general" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Configuración General</CardTitle>
+                <CardTitle>General Settings</CardTitle>
                 <CardDescription>
-                  Ajustes básicos de la plataforma
+                  Basic platform settings
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="platform-name">Nombre de la Plataforma</Label>
-                    <Input id="platform-name" defaultValue="Plataforma de Denuncias IA" />
+                    <Label htmlFor="platform-name">Platform Name</Label>
+                    <Input id="platform-name" defaultValue="VoiceGuard Platform" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="admin-email">Email de Administrador</Label>
+                    <Label htmlFor="admin-email">Admin Email</Label>
                     <Input id="admin-email" type="email" defaultValue="admin@example.com" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="platform-description">Descripción</Label>
+                  <Label htmlFor="platform-description">Description</Label>
                   <Textarea 
                     id="platform-description" 
-                    defaultValue="Sistema para recibir y gestionar denuncias mediante llamadas telefónicas transcritas con inteligencia artificial."
+                    defaultValue="System to receive and manage complaints through phone calls transcribed with artificial intelligence."
                   />
                 </div>
 
                 <Button>
                   <Save className="mr-2 h-4 w-4" />
-                  Guardar Cambios
+                  Save Changes
                 </Button>
               </CardContent>
             </Card>
@@ -67,9 +67,9 @@ export default function ConfiguracionPage() {
           <TabsContent value="twilio" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Configuración de Twilio</CardTitle>
+                <CardTitle>Twilio Settings</CardTitle>
                 <CardDescription>
-                  Configuración para recibir llamadas entrantes de denuncias
+                  Configuration for receiving incoming complaint calls
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -86,17 +86,17 @@ export default function ConfiguracionPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="twilio-phone">Número de Recepción</Label>
+                    <Label htmlFor="twilio-phone">Reception Number</Label>
                     <Input id="twilio-phone" placeholder="+1234567890" />
                     <p className="text-xs text-muted-foreground">
-                      Este es el número que se publicará para recibir denuncias
+                      This is the number that will be published to receive complaints
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="twilio-webhook">URL de Webhook</Label>
-                    <Input id="twilio-webhook" defaultValue="https://tu-dominio.com/api/twilio" />
+                    <Label htmlFor="twilio-webhook">Webhook URL</Label>
+                    <Input id="twilio-webhook" defaultValue="https://your-domain.com/api/twilio" />
                     <p className="text-xs text-muted-foreground">
-                      URL que procesará las llamadas entrantes
+                      URL that will process incoming calls
                     </p>
                   </div>
                 </div>
@@ -104,11 +104,11 @@ export default function ConfiguracionPage() {
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Button>
                     <Save className="mr-2 h-4 w-4" />
-                    Guardar Configuración
+                    Save Configuration
                   </Button>
                   <Button variant="outline">
                     <Phone className="mr-2 h-4 w-4" />
-                    Verificar Número
+                    Verify Number
                   </Button>
                 </div>
               </CardContent>
@@ -118,31 +118,31 @@ export default function ConfiguracionPage() {
           <TabsContent value="whisper" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Configuración de Whisper AI</CardTitle>
+                <CardTitle>Whisper AI Settings</CardTitle>
                 <CardDescription>
-                  Configuración para la transcripción de audio
+                  Configuration for audio transcription
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="openai-key">API Key de OpenAI</Label>
+                  <Label htmlFor="openai-key">OpenAI API Key</Label>
                   <Input id="openai-key" type="password" placeholder="sk-•••••••••••••••••••••••••••••••••••••••••••••" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="whisper-model">Modelo de Whisper</Label>
+                    <Label htmlFor="whisper-model">Whisper Model</Label>
                     <select id="whisper-model" className="w-full rounded-md border border-input bg-background px-3 py-2">
-                      <option value="whisper-1">whisper-1 (Estándar)</option>
-                      <option value="whisper-large">whisper-large (Mayor precisión)</option>
+                      <option value="whisper-1">whisper-1 (Standard)</option>
+                      <option value="whisper-large">whisper-large (Higher accuracy)</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="whisper-language">Idioma Preferido</Label>
+                    <Label htmlFor="whisper-language">Preferred Language</Label>
                     <select id="whisper-language" className="w-full rounded-md border border-input bg-background px-3 py-2">
-                      <option value="es">Español</option>
-                      <option value="en">Inglés</option>
-                      <option value="auto">Detección Automática</option>
+                      <option value="es">Spanish</option>
+                      <option value="en">English</option>
+                      <option value="auto">Automatic Detection</option>
                     </select>
                   </div>
                 </div>
@@ -150,11 +150,11 @@ export default function ConfiguracionPage() {
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Button>
                     <Save className="mr-2 h-4 w-4" />
-                    Guardar Configuración
+                    Save Configuration
                   </Button>
                   <Button variant="outline">
                     <Mic className="mr-2 h-4 w-4" />
-                    Probar Transcripción
+                    Test Transcription
                   </Button>
                 </div>
               </CardContent>
@@ -164,14 +164,14 @@ export default function ConfiguracionPage() {
           <TabsContent value="audio" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Configuración de Audio</CardTitle>
+                <CardTitle>Audio Settings</CardTitle>
                 <CardDescription>
-                  Configuración para los archivos de audio
+                  Configuration for audio files
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="welcome-audio">Audio de Bienvenida</Label>
+                  <Label htmlFor="welcome-audio">Welcome Audio</Label>
                   <div className="flex items-center gap-2">
                     <Input id="welcome-audio" disabled defaultValue="welcome.mp3" />
                     <Button variant="outline" size="icon">
@@ -179,23 +179,23 @@ export default function ConfiguracionPage() {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Este audio se reproducirá cuando alguien llame al número de denuncias
+                    This audio will play when someone calls the complaint number
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Vista Previa</Label>
+                  <Label>Preview</Label>
                   <div className="p-4 bg-secondary/50 rounded-md">
                     <audio controls className="w-full">
                       <source src="/audio/welcome.mp3" type="audio/mpeg" />
-                      Tu navegador no soporta la reproducción de audio.
+                      Your browser does not support audio playback.
                     </audio>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="audio-format">Formato de Audio</Label>
+                    <Label htmlFor="audio-format">Audio Format</Label>
                     <select id="audio-format" className="w-full rounded-md border border-input bg-background px-3 py-2">
                       <option value="mp3">MP3</option>
                       <option value="wav">WAV</option>
@@ -203,18 +203,18 @@ export default function ConfiguracionPage() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="audio-quality">Calidad de Audio</Label>
+                    <Label htmlFor="audio-quality">Audio Quality</Label>
                     <select id="audio-quality" className="w-full rounded-md border border-input bg-background px-3 py-2">
-                      <option value="high">Alta (128kbps)</option>
-                      <option value="medium">Media (64kbps)</option>
-                      <option value="low">Baja (32kbps)</option>
+                      <option value="high">High (128kbps)</option>
+                      <option value="medium">Medium (64kbps)</option>
+                      <option value="low">Low (32kbps)</option>
                     </select>
                   </div>
                 </div>
 
                 <Button>
                   <RefreshCw className="mr-2 h-4 w-4" />
-                  Actualizar Configuración
+                  Update Configuration
                 </Button>
               </CardContent>
             </Card>

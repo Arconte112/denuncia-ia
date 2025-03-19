@@ -38,7 +38,7 @@ export async function GET() {
         time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
         phoneNumber: call.phone_number,
         duration: call.duration !== null ? formatDuration(call.duration) : 'N/A',
-        status: call.status === 'failed' ? 'Fallida' : (call.status === 'completed' ? 'Completada' : 'En progreso'),
+        status: call.status === 'failed' ? 'Error' : (call.status === 'completed' ? 'Completed' : 'In progress'),
         hasDenuncia: call.has_complaint,
         callSid: call.call_sid,
         recordingSid: call.recording_sid,

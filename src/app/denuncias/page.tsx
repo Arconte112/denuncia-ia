@@ -9,7 +9,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { FileText, Search, Loader2, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 
 // Tipo para las denuncias
 interface Complaint {
@@ -28,10 +28,10 @@ interface Complaint {
 
 // Mapeo de estados para visualización
 const statusDisplay = {
-  'new': { label: 'Nuevo', className: 'bg-green-500/20 text-green-500' },
-  'in_progress': { label: 'En proceso', className: 'bg-yellow-500/20 text-yellow-500' },
-  'resolved': { label: 'Resuelto', className: 'bg-blue-500/20 text-blue-500' },
-  'closed': { label: 'Cerrado', className: 'bg-gray-500/20 text-gray-500' }
+  'new': { label: 'New', className: 'bg-green-500/20 text-green-500' },
+  'in_progress': { label: 'In progress', className: 'bg-yellow-500/20 text-yellow-500' },
+  'resolved': { label: 'Resolved', className: 'bg-blue-500/20 text-blue-500' },
+  'closed': { label: 'Closed', className: 'bg-gray-500/20 text-gray-500' }
 };
 
 // Intervalo de actualización en milisegundos (30 segundos)
@@ -65,7 +65,7 @@ export default function DenunciasPage() {
       const response = await fetch('/api/denuncias');
       
       if (!response.ok) {
-        throw new Error('Error al cargar las denuncias');
+        throw new Error('Error loading complaints');
       }
       
       const data = await response.json();
@@ -74,7 +74,7 @@ export default function DenunciasPage() {
       setError(null);
     } catch (err) {
       console.error('Error:', err);
-      setError('No se pudieron cargar las denuncias. Intente nuevamente más tarde.');
+      setError('Could not load complaints. Please try again later.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -118,9 +118,9 @@ export default function DenunciasPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Denuncias</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Complaints</h1>
             <p className="text-muted-foreground">
-              Gestiona las denuncias recibidas por llamada telefónica
+              Manage complaints received by phone call
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ export default function DenunciasPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input 
                 type="search" 
-                placeholder="Buscar denuncias..." 
+                placeholder="Search complaints..." 
                 className="w-64 pl-8" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -140,11 +140,11 @@ export default function DenunciasPage() {
               disabled={refreshing || loading}
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              Refresh
             </Button>
             <Button variant="outline">
               <FileText className="mr-2 h-4 w-4" />
-              Exportar
+              Export
             </Button>
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function DenunciasPage() {
           {loading ? (
             <div className="flex justify-center items-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2">Cargando denuncias...</span>
+              <span className="ml-2">Loading complaints...</span>
             </div>
           ) : error ? (
             <div className="text-center py-10 text-red-500">
@@ -166,19 +166,19 @@ export default function DenunciasPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>ID</TableHead>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead>Número Telefónico</TableHead>
-                      <TableHead>Duración</TableHead>
-                      <TableHead>Categoría</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Acciones</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Phone Number</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredComplaints.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                          No se encontraron denuncias
+                          No complaints found
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -186,11 +186,11 @@ export default function DenunciasPage() {
                         <TableRow key={complaint.id}>
                           <TableCell className="font-mono">{complaint.id.substring(0, 8)}...</TableCell>
                           <TableCell>{complaint.created_at 
-                            ? formatDistanceToNow(new Date(complaint.created_at), { addSuffix: true, locale: es }) 
+                            ? formatDistanceToNow(new Date(complaint.created_at), { addSuffix: true, locale: enUS }) 
                             : 'N/A'}</TableCell>
-                          <TableCell>{complaint.call?.phone_number || 'Desconocido'}</TableCell>
+                          <TableCell>{complaint.call?.phone_number || 'Unknown'}</TableCell>
                           <TableCell>{complaint.call?.duration !== undefined ? formatDuration(complaint.call.duration) : 'N/A'}</TableCell>
-                          <TableCell>{complaint.category || 'Sin categoría'}</TableCell>
+                          <TableCell>{complaint.category || 'No category'}</TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs ${statusDisplay[complaint.status].className}`}>
                               {statusDisplay[complaint.status].label}
@@ -199,7 +199,7 @@ export default function DenunciasPage() {
                           <TableCell>
                             <Button asChild variant="ghost" size="sm">
                               <Link href={`/denuncias/${complaint.id}`}>
-                                Ver detalles
+                                View details
                               </Link>
                             </Button>
                           </TableCell>
@@ -212,16 +212,16 @@ export default function DenunciasPage() {
               
               <div className="flex items-center justify-between mt-4">
                 <p className="text-sm text-muted-foreground">
-                  Mostrando {filteredComplaints.length} de {complaints.length} denuncias · 
-                  Última actualización: {formatLastUpdated()} · 
-                  {refreshing && <span className="ml-2 text-primary">Actualizando...</span>}
+                  Showing {filteredComplaints.length} of {complaints.length} complaints · 
+                  Last updated: {formatLastUpdated()} · 
+                  {refreshing && <span className="ml-2 text-primary">Updating...</span>}
                 </p>
                 <div className="flex items-center space-x-2">
                   <Button variant="outline" size="sm" disabled>
-                    Anterior
+                    Previous
                   </Button>
                   <Button variant="outline" size="sm" disabled>
-                    Siguiente
+                    Next
                   </Button>
                 </div>
               </div>

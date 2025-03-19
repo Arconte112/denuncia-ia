@@ -94,7 +94,7 @@ export async function POST(request: Request) {
       service: 'support-api',
       context: {
         requestId,
-        from: supportEmailFrom,
+        from: `VoiceGuard Support <${supportEmailFrom}>`,
         to: supportEmailTo,
         subject: `Ticket de soporte: ${subject}`
       }
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     const supportEmailResult = await withRetry(
       async () => {
         return resend.emails.send({
-          from: `Soporte Denuncias IA <${supportEmailFrom}>`,
+          from: `VoiceGuard Support <${supportEmailFrom}>`,
           to: supportEmailTo,
           replyTo: email,
           subject: `Ticket de soporte: ${subject}`,
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
             <p>${message.replace(/\n/g, '<br/>')}</p>
             ${systemInfoHtml}
             <hr />
-            <p><small>Este ticket fue generado desde el sistema de Denuncias IA.</small></p>
+            <p><small>This ticket was generated from the VoiceGuard system.</small></p>
             <p><small>ID de solicitud: ${requestId}</small></p>
           `,
         });
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
     await withRetry(
       async () => {
         return resend.emails.send({
-          from: `Soporte Denuncias IA <${supportEmailFrom}>`,
+          from: `VoiceGuard Support <${supportEmailFrom}>`,
           to: email,
           subject: `Confirmación de ticket: ${subject}`,
           html: `
@@ -159,8 +159,8 @@ export async function POST(request: Request) {
             <p>A continuación se muestra una copia de su mensaje:</p>
             <p><em>${message.replace(/\n/g, '<br/>')}</em></p>
             <hr />
-            <p><small>Este es un mensaje automático, por favor no responda a este correo.</small></p>
-            <p><small>ID de referencia: ${requestId}</small></p>
+            <p><small>This is an automated message, please do not reply to this email.</small></p>
+            <p><small>Reference ID: ${requestId}</small></p>
           `,
         });
       },

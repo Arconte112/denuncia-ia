@@ -22,12 +22,12 @@ export function Sidebar({ className }: SidebarProps) {
       icon: <BarChart3 className="h-5 w-5" />,
     },
     {
-      name: "Denuncias",
+      name: "Complaints",
       href: "/denuncias",
       icon: <FileText className="h-5 w-5" />,
     },
     {
-      name: "Llamadas Entrantes",
+      name: "Incoming Calls",
       href: "/llamadas",
       icon: <Phone className="h-5 w-5" />,
     },
@@ -36,7 +36,7 @@ export function Sidebar({ className }: SidebarProps) {
   // Agregar configuración solo si el usuario no tiene rol 'user'
   if (user?.role !== 'user') {
     menuItems.push({
-      name: "Configuración",
+      name: "Settings",
       href: "/configuracion",
       icon: <Settings className="h-5 w-5" />,
     });
@@ -47,7 +47,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="flex items-center gap-2 pb-6 pt-2">
         <Link href="/dashboard" className="flex items-center gap-2">
           <Home className="h-6 w-6" />
-          <span className="text-xl font-bold">Denuncias IA</span>
+          <span className="text-xl font-bold">VoiceGuard</span>
         </Link>
       </div>
       <nav className="space-y-1">
@@ -67,7 +67,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="absolute bottom-4 left-4 right-4">
         <div className="rounded-lg bg-secondary p-3">
           <p className="text-xs text-muted-foreground">
-            Sistema de Denuncias IA v1.0
+            Platform by IntelArt
           </p>
         </div>
       </div>

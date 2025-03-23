@@ -18,22 +18,17 @@ const publicPathPrefixes = [
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-change-in-production';
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-
-  // Añadir encabezados para el manejo de errores y debugging
-  response.headers.set('X-Debug-Mode', 'enabled');
-  
   const { pathname } = request.nextUrl;
   
   // Verificar si la ruta es pública
   if (publicRoutes.includes(pathname)) {
-    return response;
+    return NextResponse.next();
   }
   
   // Verificar si la ruta comienza con un prefijo público
   const isPublicPath = publicPathPrefixes.some(prefix => pathname.startsWith(prefix));
   if (isPublicPath) {
-    return response;
+    return NextResponse.next();
   }
   
   // Obtener token de la cookie
@@ -43,7 +38,7 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     const url = new URL('/login', request.url);
     url.searchParams.set('redirect', pathname);
-    return response;
+    return NextResponse.redirect(url);
   }
   
   try {
@@ -59,7 +54,7 @@ export async function middleware(request: NextRequest) {
     }
     
     // Usuario autenticado, continuar
-    return response;
+    return NextResponse.next();
   } catch (error) {
     // Token inválido, redirigir al login
     console.error('Error verificando token:', error);
@@ -77,9 +72,7 @@ export async function middleware(request: NextRequest) {
 // Configurar las rutas que usarán este middleware
 export const config = {
   matcher: [
-    // Aplicar a todas las rutas API
-    '/api/:path*',
-    // Excluir rutas de archivos estáticos
+    // Aplicar a todas las rutas excepto las estáticas específicas
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }; 

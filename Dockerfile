@@ -18,10 +18,18 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Default values for required build-time variables (will be overridden by Coolify)
-ENV NEXT_PUBLIC_SUPABASE_URL="https://example.supabase.co"
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="dummy-key-for-build"
-ENV NEXTAUTH_URL="http://localhost:8661"
-ENV NEXTAUTH_SECRET="dummy-secret-for-build"
+ENV NEXT_PUBLIC_SUPABASE_URL="https://xlknzbjppmwgwmjvdwbq.supabase.co"
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa256YmpwcG13Z3dtanZkd2JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyNTgwMDEsImV4cCI6MjA1NzgzNDAwMX0.vRjsiRjSCHUiGUYadLgaoBuNuxI8m3Qs5Jhqb44EERc"
+ENV NEXTAUTH_URL="https://voiceguard.intelartdo.com"
+ENV NEXTAUTH_SECRET="un_secreto_muy_seguro"
+ENV HOST_URL="https://c52c-2001-1308-294a-fa00-20c2-6c6c-433e-995e.ngrok-free.app"
+ENV TWILIO_ACCOUNT_SID="AC4e739d28ea5ea4b19b4b931a154e57aa"
+ENV TWILIO_AUTH_TOKEN="bdd207471d8327842ccb5f52e4fb1b03"
+ENV TWILIO_PHONE_NUMBER="+18169925048"
+ENV OPENAI_API_KEY="sk-proj-R0bTzlBOuLQOoFpiWfIMT3BlbkFJ2hWsGglhSBVwtBX5XOc7"
+ENV RESEND_API_KEY="re_jHff3wJJ_GUhSinErJ3AsGrsULskhiPEx"
+ENV SUPPORT_EMAIL_FROM="soporte@automatadr.com"
+ENV SUPPORT_EMAIL_TO="rainiercf66@gmail.com"
 
 # Build the application without running linting
 RUN npx next build --no-lint

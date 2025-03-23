@@ -19,20 +19,31 @@ export async function POST(request: NextRequest) {
   try {
     // Parsear la solicitud de Twilio
     const formData = await request.formData();
+
+    // Log de todos los datos recibidos para depuración
+    const allFormData = Object.fromEntries(formData.entries());
+    logger.debug('Datos completos recibidos de Twilio', {
+      service: 'recording-status',
+      context: {
+        requestId,
+        formData: allFormData
+      }
+    });
     
     // Extraer los datos necesarios
-    const recordingStatus = formData.get('RecordingStatus') as string;
-    const recordingSid = formData.get('RecordingSid') as string;
-    const recordingUrl = formData.get('RecordingUrl') as string;
-    const callSid = formData.get('CallSid') as string;
+    const recordingStatus = formData.get('RecordingStatus') as string || null;
+    const recordingSid = formData.get('RecordingSid') as string || null;
+    const recordingUrl = formData.get('RecordingUrl') as string || null;
+    const callSid = formData.get('CallSid') as string || null;
     
     // Obtener From, si no existe o es null, usar un valor predeterminado
     let from = formData.get('From') as string;
     if (!from) {
-      from = 'client:TwilioClient'; // Valor para llamadas desde Twilio Client
+      from = formData.get('Caller') as string || 'Unknown';
     }
     
-    const duration = formData.get('RecordingDuration') as string;
+    const duration = formData.get('RecordingDuration') as string || formData.get('Duration') as string || null;
+    const callStatus = formData.get('CallStatus') as string || null;
 
     logger.info('Datos de grabación recibidos', {
       service: 'recording-status',
@@ -41,19 +52,45 @@ export async function POST(request: NextRequest) {
         callSid,
         recordingSid,
         recordingStatus,
+        callStatus,
         from,
         duration
       }
     });
 
+    // Si tenemos un callSid pero no tenemos información de grabación,
+    // puede ser porque la llamada terminó sin grabar o hubo un problema con la grabación
+    if (callSid && !recordingSid && !recordingStatus) {
+      const callDuration = formData.get('CallDuration') as string || null;
+      
+      logger.info('Llamada finalizada sin grabación completada', {
+        service: 'recording-status',
+        context: {
+          requestId,
+          callSid,
+          callStatus,
+          callDuration,
+          from
+        }
+      });
+      
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Llamada finalizada sin grabación',
+        call_sid: callSid,
+        call_status: callStatus,
+        request_id: requestId
+      });
+    }
+
     // Validar que tengamos los datos mínimos necesarios
-    if (!recordingStatus || !callSid) {
-      const errorMsg = 'Datos de grabación incompletos';
+    if (!callSid) {
+      const errorMsg = 'ID de llamada no proporcionado';
       logger.error(errorMsg, {
         service: 'recording-status',
         context: {
           requestId,
-          receivedFields: Object.fromEntries(formData.entries())
+          receivedFields: allFormData
         }
       });
       
@@ -63,26 +100,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (recordingStatus === 'completed') {
-      // Verificar que tenemos una URL de grabación
-      if (!recordingUrl || !recordingSid) {
-        const errorMsg = 'URL de grabación o ID de grabación no proporcionados';
-        logger.error(errorMsg, {
-          service: 'recording-status',
-          context: {
-            requestId,
-            callSid,
-            recordingStatus
-          }
-        });
-        
-        return NextResponse.json(
-          { success: false, error: errorMsg },
-          { status: 400 }
-        );
-      }
-      
-      // En lugar de redirigir a la ruta principal, procesamos directamente aquí
+    // Si tenemos información de grabación completa, procesarla
+    if (recordingStatus === 'completed' && recordingUrl && recordingSid) {
       try {
         logger.info('Iniciando procesamiento asíncrono de grabación', {
           service: 'recording-status',
@@ -100,7 +119,7 @@ export async function POST(request: NextRequest) {
           recordingSid,
           recordingUrl,
           from,
-          duration
+          duration || ''
         ).catch(error => {
           logger.error('Error en el procesamiento asíncrono de grabación', {
             service: 'recording-status',
@@ -151,18 +170,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    logger.info('Estado de grabación procesado', {
+    // Para cualquier otro estado, devolvemos una respuesta exitosa
+    logger.info('Estado de llamada/grabación procesado', {
       service: 'recording-status',
       context: {
         requestId,
         callSid,
-        recordingStatus
+        recordingStatus,
+        callStatus
       }
     });
     
     return NextResponse.json({ 
       success: true, 
-      message: `Estado de grabación: ${recordingStatus}`,
+      message: recordingStatus 
+        ? `Estado de grabación: ${recordingStatus}` 
+        : `Estado de llamada: ${callStatus || 'desconocido'}`,
       request_id: requestId
     });
   } catch (error) {

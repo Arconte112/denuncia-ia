@@ -3,6 +3,21 @@ import { audioProcessor } from '@/lib/audio-processor';
 import { logger } from '@/lib/logger';
 import { withRetry } from '@/lib/retry';
 
+// Función auxiliar para asegurar que las URLs de Twilio tengan el formato correcto
+const ensureValidTwilioUrl = (url: string): string => {
+  if (!url) return url;
+  
+  // Si la URL ya tiene https://, no hacer cambios
+  if (url.startsWith('https://')) return url;
+  
+  // Si la URL comienza con api.twilio.com, agregarle https://
+  if (url.startsWith('api.twilio.com')) {
+    return `https://${url}`;
+  }
+  
+  return url;
+};
+
 export async function POST(request: NextRequest) {
   // Generar un ID único para rastrear esta solicitud específica
   const requestId = Math.random().toString(36).substring(2, 15);
@@ -24,9 +39,12 @@ export async function POST(request: NextRequest) {
     // Extraer los datos necesarios
     const recordingStatus = formData.get('RecordingStatus') as string;
     const recordingSid = formData.get('RecordingSid') as string;
-    const recordingUrl = formData.get('RecordingUrl') as string;
+    let recordingUrl = formData.get('RecordingUrl') as string;
     const callSid = formData.get('CallSid') as string;
     const callbackSource = formData.get('CallbackSource') as string;
+    
+    // Asegurar que la URL de grabación sea válida
+    recordingUrl = ensureValidTwilioUrl(recordingUrl);
     
     // Obtener From, si no existe o es null, usar un valor predeterminado
     let from = formData.get('From') as string;
@@ -64,7 +82,8 @@ export async function POST(request: NextRequest) {
         recordingSid,
         recordingStatus,
         from,
-        duration
+        duration,
+        recordingUrl
       }
     });
 
@@ -110,7 +129,9 @@ export async function POST(request: NextRequest) {
           context: {
             requestId,
             callSid,
-            recordingSid
+            recordingSid,
+            recordingUrl,
+            hostUrl: process.env.HOST_URL
           }
         });
         
@@ -128,7 +149,8 @@ export async function POST(request: NextRequest) {
             context: {
               requestId,
               callSid,
-              recordingSid
+              recordingSid,
+              errorMessage: error instanceof Error ? error.message : String(error)
             },
             error
           });
@@ -156,7 +178,8 @@ export async function POST(request: NextRequest) {
           context: {
             requestId,
             callSid,
-            recordingSid
+            recordingSid,
+            errorMessage: error instanceof Error ? error.message : String(error)
           },
           error
         });
@@ -190,7 +213,8 @@ export async function POST(request: NextRequest) {
     logger.error('Error general en el webhook de estado de grabación', {
       service: 'recording-status',
       context: {
-        requestId
+        requestId,
+        errorMessage: error instanceof Error ? error.message : String(error)
       },
       error
     });

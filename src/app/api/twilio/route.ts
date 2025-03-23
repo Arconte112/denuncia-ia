@@ -36,28 +36,12 @@ export async function POST(request: NextRequest) {
     }
     
     // Obtener la URL base para referencias a audio
-    // IMPORTANTE: Usamos el HOST_URL configurado, con fallback a origen de la solicitud
-    const configuredHostUrl = process.env.HOST_URL;
-    const hostUrl = configuredHostUrl || request.nextUrl.origin;
-    
+    const hostUrl = process.env.HOST_URL || request.nextUrl.origin;
     logger.debug('Preparando respuesta TwiML', {
       service: 'twilio-webhook',
       context: {
         requestId,
-        configuredHostUrl,
-        hostUrl,
-        requestOrigin: request.nextUrl.origin
-      }
-    });
-    
-    // Crear la URL del callback de estado de grabación absoluta
-    const recordingStatusCallbackUrl = `${hostUrl}/api/twilio/recording-status`;
-    
-    logger.debug('URL de callback configurada', {
-      service: 'twilio-webhook',
-      context: {
-        requestId,
-        recordingStatusCallbackUrl
+        hostUrl
       }
     });
     
@@ -74,7 +58,7 @@ export async function POST(request: NextRequest) {
         'maxLength="300" ' +  // Duración máxima de 5 minutos (en segundos)
         'endSilenceTimeout="10" ' + // Finalizar después de 10 segundos de silencio
         'transcribe="false" ' +
-        'recordingStatusCallback="' + recordingStatusCallbackUrl + '" ' +
+        'recordingStatusCallback="' + hostUrl + '/api/twilio/recording-status" ' +
         'recordingStatusCallbackMethod="POST" ' +
       '/>' +
       // Reproducir mensaje de error desde un archivo MP3 pregrabado en lugar de usar Say

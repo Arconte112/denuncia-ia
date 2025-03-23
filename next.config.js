@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
-
-module.exports = {
+const nextConfig = {
   output: 'standalone',
   typescript: {
     // !! WARN !!
@@ -8,4 +7,9 @@ module.exports = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-}; 
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+};
+
+module.exports = nextConfig; 

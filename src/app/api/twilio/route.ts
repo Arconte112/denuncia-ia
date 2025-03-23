@@ -19,13 +19,21 @@ export async function POST(request: NextRequest) {
   // Generar un ID único para la petición para rastrearla en los logs
   const requestId = Math.random().toString(36).substring(2, 15);
   
+  // Log detallado para diagnóstico incluyendo variables de entorno relevantes
   logger.info('Solicitud recibida en el webhook de Twilio', {
     service: 'twilio-webhook',
     context: {
       requestId,
       url: request.url,
       method: request.method,
-      userAgent: request.headers.get('user-agent')
+      userAgent: request.headers.get('user-agent'),
+      host_url_env: process.env.HOST_URL,
+      next_url_origin: request.nextUrl.origin,
+      headers: {
+        host: request.headers.get('host'),
+        'x-forwarded-host': request.headers.get('x-forwarded-host'),
+        'x-forwarded-proto': request.headers.get('x-forwarded-proto')
+      }
     }
   });
   
@@ -36,18 +44,16 @@ export async function POST(request: NextRequest) {
     }
     
     // Obtener la URL base para referencias a audio
-    // Forzar el uso del HOST_URL configurado y solo usar request.nextUrl.origin como respaldo
-    const hostUrl = process.env.HOST_URL || '';
-    const fallbackUrl = request.nextUrl.origin;
-    const baseUrl = hostUrl || fallbackUrl;
+    // Forzar el uso del HOST_URL configurado y NUNCA usar request.nextUrl.origin
+    const hostUrl = process.env.HOST_URL || 'https://voiceguard.intelartdo.com';
     
+    // Log para diagnóstico
     logger.debug('Preparando respuesta TwiML', {
       service: 'twilio-webhook',
       context: {
         requestId,
         configuredHostUrl: hostUrl,
-        fallbackUrl: fallbackUrl,
-        usingBaseUrl: baseUrl
+        requestOrigin: request.nextUrl.origin
       }
     });
     
@@ -56,26 +62,26 @@ export async function POST(request: NextRequest) {
       '<?xml version="1.0" encoding="UTF-8"?>' +
       '<Response>' +
       // Reproducir mensaje de bienvenida desde un archivo MP3 pregrabado en lugar de usar Say
-      '<Play>' + baseUrl + '/audio/bienvenida.mp3</Play>' +
+      '<Play>' + hostUrl + '/audio/bienvenida.mp3</Play>' +
       // Reproducir el tono de beep
-      '<Play>' + baseUrl + '/audio/beep.mp3</Play>' +
+      '<Play>' + hostUrl + '/audio/beep.mp3</Play>' +
       '<Record ' +
         'timeout="10" ' +     // Tiempo de espera para detectar voz (en segundos)
         'maxLength="300" ' +  // Duración máxima de 5 minutos (en segundos)
         'endSilenceTimeout="10" ' + // Finalizar después de 10 segundos de silencio
         'transcribe="false" ' +
-        'recordingStatusCallback="' + baseUrl + '/api/twilio/recording-status" ' +
+        'recordingStatusCallback="' + hostUrl + '/api/twilio/recording-status" ' +
         'recordingStatusCallbackMethod="POST" ' +
       '/>' +
       // Reproducir mensaje de error desde un archivo MP3 pregrabado en lugar de usar Say
-      '<Play>' + baseUrl + '/audio/error-grabacion.mp3</Play>' +
+      '<Play>' + hostUrl + '/audio/error-grabacion.mp3</Play>' +
       '</Response>';
     
     logger.info('Respuesta TwiML generada con éxito', {
       service: 'twilio-webhook',
       context: {
         requestId,
-        baseUrl
+        hostUrl
       }
     });
     
@@ -88,21 +94,19 @@ export async function POST(request: NextRequest) {
     logger.error('Error en el webhook de Twilio', {
       service: 'twilio-webhook',
       context: {
-        requestId
-      },
-      error
+        requestId,
+        error
+      }
     });
     
     // En caso de error, devolver un TwiML simple con audio pregrabado
     try {
-      const hostUrl = process.env.HOST_URL || '';
-      const fallbackUrl = request.nextUrl.origin;
-      const baseUrl = hostUrl || fallbackUrl;
+      const hostUrl = process.env.HOST_URL || 'https://voiceguard.intelartdo.com';
       
       const errorTwiml = 
         '<?xml version="1.0" encoding="UTF-8"?>' +
         '<Response>' +
-        '<Play>' + baseUrl + '/audio/error-sistema.mp3</Play>' +
+        '<Play>' + hostUrl + '/audio/error-sistema.mp3</Play>' +
         '<Hangup/>' +
         '</Response>';
       
@@ -110,7 +114,7 @@ export async function POST(request: NextRequest) {
         service: 'twilio-webhook',
         context: {
           requestId,
-          baseUrl
+          hostUrl
         }
       });
       

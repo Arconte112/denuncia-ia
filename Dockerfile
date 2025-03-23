@@ -15,27 +15,15 @@ COPY --from=base /app/node_modules ./node_modules
 COPY . .
 
 # Environment variables must be present at build time
-# https://nextjs.org/docs/messages/missing-env-value
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Add Coolify environment variables for build time
-ARG DATABASE_URL
-ARG NEXTAUTH_URL
-ARG NEXTAUTH_SECRET
-ARG GOOGLE_CLIENT_ID
-ARG GOOGLE_CLIENT_SECRET
-ARG TWILIO_ACCOUNT_SID
-ARG TWILIO_AUTH_TOKEN
-ARG TWILIO_PHONE_NUMBER
-ARG OPENAI_API_KEY
-ARG HOST_URL
-ARG NEXT_PUBLIC_SUPABASE_URL
-ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
-ARG RESEND_API_KEY
-ARG SUPPORT_EMAIL_FROM
-ARG SUPPORT_EMAIL_TO
+# Default values for required build-time variables (will be overridden by Coolify)
+ENV NEXT_PUBLIC_SUPABASE_URL="https://example.supabase.co"
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="dummy-key-for-build"
+ENV NEXTAUTH_URL="http://localhost:8661"
+ENV NEXTAUTH_SECRET="dummy-secret-for-build"
 
-# Build the application without running linting and using 'export' output
+# Build the application without running linting
 RUN npx next build --no-lint
 
 # Production image, copy all the files and run next
@@ -44,24 +32,6 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
-
-# Add Coolify environment variables for runtime
-ENV PORT 8661
-ENV DATABASE_URL=${DATABASE_URL}
-ENV NEXTAUTH_URL=${NEXTAUTH_URL}
-ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-ENV GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-ENV GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-ENV TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-ENV TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-ENV TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
-ENV OPENAI_API_KEY=${OPENAI_API_KEY}
-ENV HOST_URL=${HOST_URL}
-ENV NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-ENV RESEND_API_KEY=${RESEND_API_KEY}
-ENV SUPPORT_EMAIL_FROM=${SUPPORT_EMAIL_FROM}
-ENV SUPPORT_EMAIL_TO=${SUPPORT_EMAIL_TO}
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -81,6 +51,7 @@ USER nextjs
 
 # Expose the port the app will run on
 EXPOSE 8661
+ENV PORT 8661
 
 # Start the application
 CMD ["npm", "start"] 

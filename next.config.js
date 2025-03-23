@@ -10,6 +10,12 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Configuración para evitar problemas con useSearchParams en la página de login
+  experimental: {
+    appDir: true,
+  },
+  // Desactivar la generación estática
+  staticPageGenerationTimeout: 0,
 };
 
 module.exports = nextConfig; 

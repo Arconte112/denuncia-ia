@@ -41,7 +41,9 @@ ENV SUPPORT_EMAIL_FROM=${SUPPORT_EMAIL_FROM}
 ENV SUPPORT_EMAIL_TO=${SUPPORT_EMAIL_TO}
 
 # Build the application with options to bypass type checking
-RUN npm run build -- --no-lint
+# Force server-only rendering mode
+ENV NEXT_FORCE_SERVER_COMPONENTS=true
+RUN NODE_OPTIONS="--max_old_space_size=4096" npx next build --no-lint
 
 # Expose the port the app will run on
 EXPOSE 8661

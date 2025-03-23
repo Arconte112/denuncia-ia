@@ -19,21 +19,13 @@ export async function POST(request: NextRequest) {
   // Generar un ID único para la petición para rastrearla en los logs
   const requestId = Math.random().toString(36).substring(2, 15);
   
-  // Log detallado para diagnóstico incluyendo variables de entorno relevantes
   logger.info('Solicitud recibida en el webhook de Twilio', {
     service: 'twilio-webhook',
     context: {
       requestId,
       url: request.url,
       method: request.method,
-      userAgent: request.headers.get('user-agent'),
-      host_url_env: process.env.HOST_URL,
-      next_url_origin: request.nextUrl.origin,
-      headers: {
-        host: request.headers.get('host'),
-        'x-forwarded-host': request.headers.get('x-forwarded-host'),
-        'x-forwarded-proto': request.headers.get('x-forwarded-proto')
-      }
+      userAgent: request.headers.get('user-agent')
     }
   });
   
@@ -44,16 +36,12 @@ export async function POST(request: NextRequest) {
     }
     
     // Obtener la URL base para referencias a audio
-    // Forzar el uso del HOST_URL configurado y NUNCA usar request.nextUrl.origin
-    const hostUrl = process.env.HOST_URL || 'https://voiceguard.intelartdo.com';
-    
-    // Log para diagnóstico
+    const hostUrl = process.env.HOST_URL || request.nextUrl.origin;
     logger.debug('Preparando respuesta TwiML', {
       service: 'twilio-webhook',
       context: {
         requestId,
-        configuredHostUrl: hostUrl,
-        requestOrigin: request.nextUrl.origin
+        hostUrl
       }
     });
     
@@ -80,8 +68,7 @@ export async function POST(request: NextRequest) {
     logger.info('Respuesta TwiML generada con éxito', {
       service: 'twilio-webhook',
       context: {
-        requestId,
-        hostUrl
+        requestId
       }
     });
     
@@ -94,15 +81,14 @@ export async function POST(request: NextRequest) {
     logger.error('Error en el webhook de Twilio', {
       service: 'twilio-webhook',
       context: {
-        requestId,
-        error
-      }
+        requestId
+      },
+      error
     });
     
     // En caso de error, devolver un TwiML simple con audio pregrabado
     try {
-      const hostUrl = process.env.HOST_URL || 'https://voiceguard.intelartdo.com';
-      
+      const hostUrl = process.env.HOST_URL || request.nextUrl.origin;
       const errorTwiml = 
         '<?xml version="1.0" encoding="UTF-8"?>' +
         '<Response>' +
@@ -113,8 +99,7 @@ export async function POST(request: NextRequest) {
       logger.info('Devolviendo TwiML de error al cliente', {
         service: 'twilio-webhook',
         context: {
-          requestId,
-          hostUrl
+          requestId
         }
       });
       

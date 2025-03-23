@@ -19,31 +19,30 @@ export async function POST(request: NextRequest) {
   try {
     // Parsear la solicitud de Twilio
     const formData = await request.formData();
-
-    // Log de todos los datos recibidos para depuración
-    const allFormData = Object.fromEntries(formData.entries());
-    logger.debug('Datos completos recibidos de Twilio', {
-      service: 'recording-status',
-      context: {
-        requestId,
-        formData: allFormData
-      }
-    });
     
     // Extraer los datos necesarios
-    const recordingStatus = formData.get('RecordingStatus') as string || null;
-    const recordingSid = formData.get('RecordingSid') as string || null;
-    const recordingUrl = formData.get('RecordingUrl') as string || null;
-    const callSid = formData.get('CallSid') as string || null;
+    const recordingStatus = formData.get('RecordingStatus') as string;
+    const recordingSid = formData.get('RecordingSid') as string;
+    let recordingUrl = formData.get('RecordingUrl') as string;
+    const callSid = formData.get('CallSid') as string;
     
     // Obtener From, si no existe o es null, usar un valor predeterminado
     let from = formData.get('From') as string;
     if (!from) {
-      from = formData.get('Caller') as string || 'Unknown';
+      from = 'client:TwilioClient'; // Valor para llamadas desde Twilio Client
     }
     
-    const duration = formData.get('RecordingDuration') as string || formData.get('Duration') as string || null;
-    const callStatus = formData.get('CallStatus') as string || null;
+    const duration = formData.get('RecordingDuration') as string;
+    
+    // Asegurar que la URL de grabación tenga el formato correcto
+    if (recordingUrl && recordingSid) {
+      // Verificamos si la URL ya tiene el formato correcto
+      if (!recordingUrl.startsWith('https://api.twilio.com/')) {
+        // Construir la URL completa de la API de Twilio si viene en formato corto
+        const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
+        recordingUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Recordings/${recordingSid}`;
+      }
+    }
 
     logger.info('Datos de grabación recibidos', {
       service: 'recording-status',
@@ -52,45 +51,19 @@ export async function POST(request: NextRequest) {
         callSid,
         recordingSid,
         recordingStatus,
-        callStatus,
         from,
         duration
       }
     });
 
-    // Si tenemos un callSid pero no tenemos información de grabación,
-    // puede ser porque la llamada terminó sin grabar o hubo un problema con la grabación
-    if (callSid && !recordingSid && !recordingStatus) {
-      const callDuration = formData.get('CallDuration') as string || null;
-      
-      logger.info('Llamada finalizada sin grabación completada', {
-        service: 'recording-status',
-        context: {
-          requestId,
-          callSid,
-          callStatus,
-          callDuration,
-          from
-        }
-      });
-      
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Llamada finalizada sin grabación',
-        call_sid: callSid,
-        call_status: callStatus,
-        request_id: requestId
-      });
-    }
-
     // Validar que tengamos los datos mínimos necesarios
-    if (!callSid) {
-      const errorMsg = 'ID de llamada no proporcionado';
+    if (!recordingStatus || !callSid) {
+      const errorMsg = 'Datos de grabación incompletos';
       logger.error(errorMsg, {
         service: 'recording-status',
         context: {
           requestId,
-          receivedFields: allFormData
+          receivedFields: Object.fromEntries(formData.entries())
         }
       });
       
@@ -100,15 +73,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Si tenemos información de grabación completa, procesarla
-    if (recordingStatus === 'completed' && recordingUrl && recordingSid) {
+    if (recordingStatus === 'completed') {
+      // Verificar credenciales de Twilio
+      const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
+      const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+      
+      if (!twilioAccountSid || !twilioAuthToken) {
+        const errorMsg = 'Credenciales de Twilio no configuradas';
+        logger.error(errorMsg, {
+          service: 'recording-status',
+          context: {
+            requestId,
+            callSid
+          }
+        });
+        
+        return NextResponse.json(
+          { success: false, error: errorMsg },
+          { status: 500 }
+        );
+      }
+      
+      // Verificar que tenemos una URL de grabación
+      if (!recordingUrl || !recordingSid) {
+        const errorMsg = 'URL de grabación o ID de grabación no proporcionados';
+        logger.error(errorMsg, {
+          service: 'recording-status',
+          context: {
+            requestId,
+            callSid,
+            recordingStatus
+          }
+        });
+        
+        return NextResponse.json(
+          { success: false, error: errorMsg },
+          { status: 400 }
+        );
+      }
+      
+      // En lugar de redirigir a la ruta principal, procesamos directamente aquí
       try {
         logger.info('Iniciando procesamiento asíncrono de grabación', {
           service: 'recording-status',
           context: {
             requestId,
             callSid,
-            recordingSid
+            recordingSid,
+            recordingUrl
           }
         });
         
@@ -119,7 +131,7 @@ export async function POST(request: NextRequest) {
           recordingSid,
           recordingUrl,
           from,
-          duration || ''
+          duration
         ).catch(error => {
           logger.error('Error en el procesamiento asíncrono de grabación', {
             service: 'recording-status',
@@ -170,22 +182,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Para cualquier otro estado, devolvemos una respuesta exitosa
-    logger.info('Estado de llamada/grabación procesado', {
+    logger.info('Estado de grabación procesado', {
       service: 'recording-status',
       context: {
         requestId,
         callSid,
-        recordingStatus,
-        callStatus
+        recordingStatus
       }
     });
     
     return NextResponse.json({ 
       success: true, 
-      message: recordingStatus 
-        ? `Estado de grabación: ${recordingStatus}` 
-        : `Estado de llamada: ${callStatus || 'desconocido'}`,
+      message: `Estado de grabación: ${recordingStatus}`,
       request_id: requestId
     });
   } catch (error) {

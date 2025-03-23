@@ -18,7 +18,7 @@ COPY . .
 # https://nextjs.org/docs/messages/missing-env-value
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN npm run build
+RUN npx next build --no-lint
 
 # Production image, copy all the files and run next
 FROM base AS runner

@@ -25,18 +25,12 @@ export const audioProcessor = {
     
     return withRetry(async () => {
       try {
-        // Obtener credenciales de Twilio
-        const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
-        const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+        // Agregar autenticación si es necesario
+        const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID || '';
+        const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN || '';
         
-        if (!twilioAccountSid || !twilioAuthToken) {
-          throw new Error('Credenciales de Twilio no configuradas');
-        }
-        
-        // Crear la cabecera de autenticación correcta
         const auth = Buffer.from(`${twilioAccountSid}:${twilioAuthToken}`).toString('base64');
         
-        // Descargar la grabación con autenticación básica
         const response = await fetch(recordingUrl, {
           headers: {
             'Authorization': `Basic ${auth}`
@@ -79,10 +73,11 @@ export const audioProcessor = {
       initialDelay: 500,
       operationName: 'descarga de audio',
       shouldRetry: (error) => {
-        // No reintentar errores de autenticación (401)
+        // Reintentar errores de red o errores 5xx
         if (error instanceof Error) {
-          return !error.message.includes('Unauthorized') && 
-                 !error.message.includes('401');
+          return error.message.includes('fetch') || 
+                 error.message.includes('500') || 
+                 error.message.includes('503');
         }
         return true;
       }

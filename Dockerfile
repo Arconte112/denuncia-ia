@@ -18,7 +18,7 @@ COPY . .
 # https://nextjs.org/docs/messages/missing-env-value
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Build the application without running linting and using 'export' output
+# Build the application without running linting
 RUN npx next build --no-lint
 
 # Production image, copy all the files and run next
@@ -31,15 +31,12 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copy necessary files for the standalone output
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Copy all necessary files instead of using standalone mode
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
-# Set the correct permission for prerender cache
+# Set the correct permission for files
 RUN chown -R nextjs:nodejs .
 
 USER nextjs
@@ -51,4 +48,4 @@ EXPOSE 8661
 ENV PORT 8661
 
 # Start the application
-CMD ["npm", "start", "--", "-p", "8661"] 
+CMD ["node", "server.js"] 

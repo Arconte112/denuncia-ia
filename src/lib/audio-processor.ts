@@ -29,27 +29,6 @@ export const audioProcessor = {
         const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID || '';
         const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN || '';
         
-        if (!twilioAccountSid || !twilioAuthToken) {
-          const errorMsg = 'Credenciales de Twilio no configuradas para descargar audio';
-          logger.error(errorMsg, {
-            service: 'audio-processor',
-            context: { 
-              hasAccountSid: Boolean(twilioAccountSid),
-              hasAuthToken: Boolean(twilioAuthToken)
-            }
-          });
-          throw new Error(errorMsg);
-        }
-        
-        logger.debug('Iniciando descarga de audio con credenciales', {
-          service: 'audio-processor',
-          context: { 
-            recordingUrl,
-            accountSidLength: twilioAccountSid.length,
-            authTokenLength: twilioAuthToken.length
-          }
-        });
-        
         const auth = Buffer.from(`${twilioAccountSid}:${twilioAuthToken}`).toString('base64');
         
         const response = await fetch(recordingUrl, {
@@ -59,30 +38,15 @@ export const audioProcessor = {
         });
         
         if (!response.ok) {
-          // Intentar leer el texto de error del cuerpo de la respuesta
-          let responseText = '';
-          try {
-            responseText = await response.text();
-          } catch (textError) {
-            logger.debug('No se pudo leer el cuerpo de la respuesta de error', {
-              service: 'audio-processor',
-              context: { textError }
-            });
-          }
-          
-          const errorMsg = `Error al obtener el audio de Twilio: ${response.status} ${response.statusText}`;
+          const errorMsg = `Error al descargar el audio: ${response.statusText}`;
           logger.error(errorMsg, {
             service: 'audio-processor',
             context: { 
               recordingUrl,
               status: response.status,
-              statusText: response.statusText,
-              responseText: responseText || 'No disponible',
-              headers: Object.fromEntries(response.headers.entries())
+              statusText: response.statusText
             }
           });
-          
-          console.error(`Error al obtener el audio de Twilio: ${response.status} ${response.statusText}`);
           throw new Error(errorMsg);
         }
         
@@ -99,11 +63,7 @@ export const audioProcessor = {
       } catch (error) {
         logger.error('Error al descargar el audio', {
           service: 'audio-processor',
-          context: { 
-            recordingUrl,
-            hostUrl: process.env.HOST_URL,
-            errorMessage: error instanceof Error ? error.message : String(error)
-          },
+          context: { recordingUrl },
           error
         });
         throw error;

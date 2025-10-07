@@ -1,133 +1,62 @@
-# Plataforma de Denuncias IA
+# Denuncia IA
 
-Una plataforma para recibir denuncias telefónicas, transcribirlas con IA y gestionarlas.
+Denuncia IA permite recibir llamadas telefónicas, transcribirlas con Whisper y gestionar los reportes desde un panel web. El objetivo es acelerar la captura de denuncias ciudadanas (o tickets de soporte) automatizando la llegada, transcripción, asignación y seguimiento.
 
-## Características
+https://github.com/user-attachments/assets/40d0a988-61f5-4baa-a9b0-a4fb79ba8791
 
-- Recepción de denuncias mediante llamadas telefónicas a través de Twilio
-- Transcripción automática de denuncias utilizando Whisper de OpenAI
-- Panel de administración para gestionar las denuncias recibidas
-- Visualización de denuncias con su información, audio y transcripción
-- API RESTful para interactuar con el sistema
+## ✨ Funcionalidades
+- **Recepción por voz** con Twilio Voice → webhook HTTP (`/api/twilio`).
+- **Transcripción automática** usando OpenAI Whisper.
+- **Panel de administración**: dashboard con estadísticas, listado de denuncias, filtro por estado, detalle con audio original y transcripción.
+- **Gestión**: asignación de responsables, cambio de status, notas internas.
+- **Soporte integrado**: botón flotante que envía tickets vía Resend.
+- **Notificaciones**: entregas de email (opcional) cuando llega una nueva denuncia.
 
-## Tecnologías
+## 🧱 Stack técnico
+- **Frontend**: Next.js 15 (App Router), React 19, TailwindCSS + shadcn/ui, Recharts.
+- **Backend**: Next.js Route Handlers, Supabase (DB + Auth + Storage), Nodemailer/Resend.
+- **Telefonía**: Twilio Programmable Voice.
+- **IA**: OpenAI Whisper (transcripción).
+- **Infra**: Docker/Vercel, autenticación NextAuth (magic links).
 
-- [Next.js](https://nextjs.org/) - Framework de React para aplicaciones web
-- [Shadcn UI](https://ui.shadcn.com/) - Biblioteca de componentes UI
-- [Tailwind CSS](https://tailwindcss.com/) - Framework CSS para diseño
-- [Twilio](https://www.twilio.com/) - Plataforma de comunicaciones para llamadas
-- [OpenAI Whisper](https://openai.com/research/whisper) - Modelo de reconocimiento de voz para transcripciones
+## ⚙️ Variables de entorno principales
+Revisa el archivo `.env.example`. Los campos obligatorios son:
 
-## Requisitos
+| Variable | Descripción |
+|----------|-------------|
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` | Credenciales del número que recibe las denuncias. |
+| `OPENAI_API_KEY` | Token para transcribir audio con Whisper. |
+| `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | Configuración NextAuth para sesiones seguras. |
+| `HOST_URL` | URL pública para recibir webhooks (ngrok/Vercel). |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Proyecto Supabase (auth & storage). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clave service role para mutaciones server-side. |
+| `RESEND_API_KEY`, `SUPPORT_EMAIL_FROM`, `SUPPORT_EMAIL_TO` | Opcional: envíos de correo para tickets/staff. |
 
-- Node.js 18.0.0 o superior
-- Cuenta de Twilio con un número de teléfono
-- Cuenta de OpenAI con acceso a la API de Whisper
-- Variables de entorno configuradas (ver `.env.local.example`)
+## 🚀 Cómo correrlo localmente
+1. Clona el repo y crea tu `.env.local` usando la plantilla `.env.example`.
+2. Instala dependencias (`npm install`).
+3. Opcional: levanta Supabase local con los scripts en `sql/`.
+4. Ejecuta `npm run dev` y expone tu entorno con ngrok para apuntar Twilio a `https://<ngrok-url>/api/twilio`.
+5. Configura en el dashboard de Twilio el webhook de voz hacia tu endpoint.
 
-## Instalación
+## 🧭 Flujo de denuncia
+1. El ciudadano llama al número de Twilio.
+2. Twilio envía el audio a `/api/twilio`. Se almacena el archivo y se encola la transcripción.
+3. Whisper transcribe y guarda el texto en Supabase.
+4. El dashboard refleja la nueva denuncia con audio, texto y metadatos.
+5. El equipo puede actualizar estado, asignar responsables y disparar correos.
 
-1. Clona este repositorio
-   ```bash
-   git clone https://github.com/tu-usuario/denuncia-ia.git
-   cd denuncia-ia
-   ```
+## 🛣 Roadmap sugerido
+- Integrar marcas de tiempo / diarización en la transcripción.
+- Etiquetado automático (NLU) según contenido de la denuncia.
+- Exportar reportes en CSV / PDF.
+- Control de roles (operador / analista / administrador).
+- Automatizar respuestas con plantillas y Resend.
 
-2. Instala las dependencias
-   ```bash
-   npm install
-   ```
+## 🤝 Contribuir
+1. Crea una rama (`git checkout -b feature/...`).
+2. Ejecuta `npm run lint` antes de abrir el PR.
+3. Documenta los cambios y añade screenshots si afectan el UI.
 
-3. Crea un archivo `.env.local` basado en `.env.local.example` y añade tus claves
-   ```bash
-   cp .env.local.example .env.local
-   ```
-
-4. Abre `.env.local` y añade tus claves de API de Twilio y OpenAI
-
-## Ejecución
-
-1. Inicia el servidor de desarrollo
-   ```bash
-   npm run dev
-   ```
-
-2. Abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver la aplicación
-
-## Configuración de Twilio
-
-1. Inicia sesión en tu [cuenta de Twilio](https://www.twilio.com/)
-2. Configura un número de teléfono
-3. En la configuración del número, establece el webhook para las llamadas a:
-   ```
-   https://tu-dominio.com/api/twilio
-   ```
-4. Asegúrate de que el método esté configurado como HTTP POST
-
-## Uso
-
-1. Los usuarios llaman al número de Twilio configurado
-2. La llamada es recibida y procesada por el sistema
-3. La denuncia es transcrita automáticamente
-4. Los administradores pueden ver y gestionar las denuncias desde el panel
-
-## Estructura del Proyecto
-
-- `/app` - Páginas y rutas de Next.js
-- `/app/api` - Puntos finales de la API
-- `/components` - Componentes de React reutilizables
-- `/lib` - Utilidades y funciones auxiliares
-
-## Desarrollo
-
-Para añadir nuevos componentes de Shadcn UI:
-
-```bash
-npx shadcn@latest add [nombre-del-componente]
-```
-
-## Licencia
-
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
-
-# Sistema de Soporte
-
-El sistema incluye un botón flotante de soporte que permite a los usuarios enviar tickets directamente al equipo de soporte técnico. Para configurar correctamente esta funcionalidad, siga estos pasos:
-
-## Configuración de Resend para el Envío de Correos
-
-1. Cree una cuenta en [Resend](https://resend.com) si aún no tiene una.
-
-2. Obtenga su API Key desde el dashboard de Resend.
-
-3. Agregue las siguientes variables de entorno en su archivo `.env.local`:
-
-```
-RESEND_API_KEY=re_su_clave_api_aquí
-SUPPORT_EMAIL_FROM=su_dominio_verificado@ejemplo.com
-SUPPORT_EMAIL_TO=correo_donde_recibir_tickets@ejemplo.com
-```
-
-4. Para entornos de producción, asegúrese de verificar su dominio en Resend para poder enviar correos desde su propio dominio.
-
-## Funcionamiento
-
-- El botón de soporte está visible en todas las páginas del dashboard.
-- La información del usuario (email y nombre) se obtiene automáticamente del usuario logueado.
-- Al hacer clic en el botón, se abre un formulario donde el usuario solo necesita ingresar el asunto y el mensaje.
-- Al enviar el formulario, se envía un correo al equipo de soporte y una confirmación al usuario.
-- El sistema recopila automáticamente información sobre el navegador, URL y resolución para facilitar la resolución de problemas.
-
-## Personalización
-
-Puede personalizar el aspecto y comportamiento del botón de soporte modificando los siguientes archivos:
-
-- `src/components/support/support-button.tsx`: Apariencia y comportamiento del botón y formulario
-- `src/app/api/support/route.ts`: Lógica de envío de correos y formato de los mensajes
-
-## Seguridad
-
-- Se requiere que el usuario esté autenticado para enviar tickets de soporte.
-- Las credenciales de API se almacenan de forma segura en variables de entorno.
-- Toda la comunicación se realiza a través de solicitudes HTTP seguras.
-- Resend proporciona análisis y seguimiento de correos enviados.
+## 📄 Licencia
+MIT © Rainier Alejandro; originalmente iniciado como “Denuncia IA” y evolucionado para casos de uso reales.

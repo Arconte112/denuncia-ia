@@ -1,62 +1,54 @@
-# Denuncia IA
+# VoiceGuard / Denuncia IA
 
-Denuncia IA permite recibir llamadas telefónicas, transcribirlas con Whisper y gestionar los reportes desde un panel web. El objetivo es acelerar la captura de denuncias ciudadanas (o tickets de soporte) automatizando la llegada, transcripción, asignación y seguimiento.
+VoiceGuard is a phone complaint intake platform. It receives calls through Twilio, records and transcribes the audio with Whisper, and gives operators a web dashboard for reviewing complaints, call metadata, categories, statuses and follow-up work.
 
-https://github.com/user-attachments/assets/40d0a988-61f5-4baa-a9b0-a4fb79ba8791
+![VoiceGuard portfolio cover](docs/cover.jpg)
 
-## ✨ Funcionalidades
-- **Recepción por voz** con Twilio Voice → webhook HTTP (`/api/twilio`).
-- **Transcripción automática** usando OpenAI Whisper.
-- **Panel de administración**: dashboard con estadísticas, listado de denuncias, filtro por estado, detalle con audio original y transcripción.
-- **Gestión**: asignación de responsables, cambio de status, notas internas.
-- **Soporte integrado**: botón flotante que envía tickets vía Resend.
-- **Notificaciones**: entregas de email (opcional) cuando llega una nueva denuncia.
+Portfolio cover generated for presentation. Runtime screenshot:
 
-## 🧱 Stack técnico
-- **Frontend**: Next.js 15 (App Router), React 19, TailwindCSS + shadcn/ui, Recharts.
-- **Backend**: Next.js Route Handlers, Supabase (DB + Auth + Storage), Nodemailer/Resend.
-- **Telefonía**: Twilio Programmable Voice.
-- **IA**: OpenAI Whisper (transcripción).
-- **Infra**: Docker/Vercel, autenticación NextAuth (magic links).
+![VoiceGuard screenshot](docs/screenshot.png)
 
-## ⚙️ Variables de entorno principales
-Revisa el archivo `.env.example`. Los campos obligatorios son:
+## Features
 
-| Variable | Descripción |
-|----------|-------------|
-| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` | Credenciales del número que recibe las denuncias. |
-| `OPENAI_API_KEY` | Token para transcribir audio con Whisper. |
-| `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | Configuración NextAuth para sesiones seguras. |
-| `HOST_URL` | URL pública para recibir webhooks (ngrok/Vercel). |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Proyecto Supabase (auth & storage). |
-| `SUPABASE_SERVICE_ROLE_KEY` | Clave service role para mutaciones server-side. |
-| `RESEND_API_KEY`, `SUPPORT_EMAIL_FROM`, `SUPPORT_EMAIL_TO` | Opcional: envíos de correo para tickets/staff. |
+- Twilio Voice intake through HTTP webhooks.
+- Automatic transcription with OpenAI Whisper.
+- Admin dashboard with complaint stats, status filters, detail pages, original audio and transcript review.
+- Internal management for assignment, status updates and notes.
+- Supabase-backed data layer for users, calls, complaints and storage.
+- Optional email/support flows through Resend or Nodemailer.
 
-## 🚀 Cómo correrlo localmente
-1. Clona el repo y crea tu `.env.local` usando la plantilla `.env.example`.
-2. Instala dependencias (`npm install`).
-3. Opcional: levanta Supabase local con los scripts en `sql/`.
-4. Ejecuta `npm run dev` y expone tu entorno con ngrok para apuntar Twilio a `https://<ngrok-url>/api/twilio`.
-5. Configura en el dashboard de Twilio el webhook de voz hacia tu endpoint.
+## Stack
 
-## 🧭 Flujo de denuncia
-1. El ciudadano llama al número de Twilio.
-2. Twilio envía el audio a `/api/twilio`. Se almacena el archivo y se encola la transcripción.
-3. Whisper transcribe y guarda el texto en Supabase.
-4. El dashboard refleja la nueva denuncia con audio, texto y metadatos.
-5. El equipo puede actualizar estado, asignar responsables y disparar correos.
+- Next.js
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Twilio Voice
+- Whisper / OpenAI
+- Supabase
+- Resend / Nodemailer
 
-## 🛣 Roadmap sugerido
-- Integrar marcas de tiempo / diarización en la transcripción.
-- Etiquetado automático (NLU) según contenido de la denuncia.
-- Exportar reportes en CSV / PDF.
-- Control de roles (operador / analista / administrador).
-- Automatizar respuestas con plantillas y Resend.
+## Run locally
 
-## 🤝 Contribuir
-1. Crea una rama (`git checkout -b feature/...`).
-2. Ejecuta `npm run lint` antes de abrir el PR.
-3. Documenta los cambios y añade screenshots si afectan el UI.
+```bash
+npm install
+npm run dev
+```
 
-## 📄 Licencia
-MIT © Rainier Alejandro; originalmente iniciado como “Denuncia IA” y evolucionado para casos de uso reales.
+Create `.env.local` from the environment example and configure Supabase, Twilio, OpenAI and email variables before using the full call pipeline.
+
+## Core flow
+
+1. A caller submits a complaint through a Twilio phone number.
+2. Twilio sends call data and audio to the app webhook.
+3. The app stores call metadata and audio.
+4. Whisper transcribes the recording.
+5. Operators review and manage the complaint from the dashboard.
+
+## Suggested roadmap
+
+- Speaker diarization and timestamps in transcripts.
+- Automatic complaint classification.
+- CSV/PDF report exports.
+- Role-based operator/admin access.
+- Response templates and notification automation.
